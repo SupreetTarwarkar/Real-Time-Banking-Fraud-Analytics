@@ -82,10 +82,11 @@ Its investigation table displays **Alert ID, Transaction ID, Customer ID, Transa
 | [`python/generate_dim_location_FINAL.py`](python/generate_dim_location_FINAL.py) | Indian location reference generator |
 | [`kql/06_Final_FraudAlerts_Updated.kql`](kql/06_Final_FraudAlerts_Updated.kql) | Five KQL rules and consolidated alert logic |
 | [`kql/07_Persist_FraudAlerts_Updated.kql`](kql/07_Persist_FraudAlerts_Updated.kql) | Persist consolidated alerts |
+| [`docs/Final_BRD.md`](docs/Final_BRD.md) | Full business requirements in readable Markdown |
 | [`docs/README.md`](docs/README.md) | Business scope and validation notes |
 | [`python/requirements.txt`](python/requirements.txt) | Python dependencies |
 
-The **synthetic dimension CSVs and a 200-row transaction sample** are available in [data/](data/). The BRD, PBIX and 10 project screenshots are supplied in the companion archive for repository upload.
+The **synthetic dimension CSVs and a 200-row transaction sample** are available in [data/](data/), and the [BRD is readable online](docs/Final_BRD.md). The formatted DOCX, PBIX and 10 project screenshots are supplied in the companion archive for repository upload.
 
 ### Run the simulator locally
 
