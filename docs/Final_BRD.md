@@ -39,7 +39,7 @@ This project demonstrates rule-based fraud-risk analytics with **fully synthetic
 | Indian locations | **105** |
 | Simulator-injected anomaly cases | **9,678** (4.03% of historical transactions) |
 
-The **9,678 injected cases are not the persisted KQL `FraudAlerts` count**.
+The **9,678 local injected cases** and **9,678 alerts displayed in the historical Power BI screenshot** match in aggregate; this does **not** establish ID-level equality with persisted KQL `FraudAlerts` or detection precision.
 
 | Stage | Component | Business role |
 |---|---|---|

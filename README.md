@@ -13,11 +13,12 @@ An end-to-end **synthetic-data** banking fraud-risk analytics portfolio project 
 | Historical period | July–September 2026 |
 | Historical transactions | **240,000** (July 68,400; August 77,600; September 94,000) |
 | Synthetic customers / Indian locations | **10,000 / 105** |
-| Injected anomaly cases | **9,678 (4.03%)** |
+| Historical dashboard fraud-risk alerts | **9,678 (4.03% of 240,000)** |
+| Local simulator-injected anomaly cases | **9,678** (distinct triggering IDs) |
 | Fraud-risk detection | **5** KQL scenarios |
 | Reporting | **3** Power BI pages and a separate last-hour Real-Time Dashboard |
 
-**Count boundary:** The 9,678 cases are **simulator-injected anomalies**, **not** KQL-generated or persisted `FraudAlerts`. The populations are different.
+**Count boundary:** The local simulator ground truth contains **9,678 injected anomaly cases**, and the historical Power BI dashboard **also displays 9,678 fraud-risk alerts**. The matching totals do **not independently prove ID-level equality or detection accuracy**. Injection cases and KQL-detected alerts are conceptually different populations.
 
 ## Business objective
 
@@ -59,7 +60,7 @@ Two or more **distinct** scenarios on one consolidated event escalate final seve
 
 The historical/analytical report contains **Fraud Overview** (management KPIs and trends), **Fraud Investigation** (critical cases, scenarios and investigation details), and **Risk Patterns** (geographic map, state/city rankings, channel risk and weekly patterns).
 
-The companion project archive contains six report screenshots, including July–September and later July–November simulated reporting states. Later-state figures must not be mistaken for the historical baseline.
+The companion project archive contains six report screenshots, including July–September and later July–November simulated reporting states. **November records extend beyond 1 November 2026 and are future-dated synthetic test data**, not elapsed live banking events.
 
 ## Real-Time Dashboard
 
@@ -73,6 +74,20 @@ Its investigation table displays **Alert ID, Transaction ID, Customer ID, Transa
 - **Potential Fraud Exposure:** rule-derived estimated exposure, **not actual loss**.
 - **Live Refresh:** re-runs dashboard queries; it does not generate transactions or guarantee new persisted alerts.
 
+## Business insights
+
+The project includes [**detailed findings, calculations and quality checks**](docs/INSIGHTS.md) based on the local historical transaction CSV and Power BI screenshots.
+
+- **240,000** historical transactions, **10,000** customers and **₹245.55 Cr** synthetic transaction value; all **240,000** IDs unique and **0** missing values across the 10 transaction fields.
+- **September** had the highest historical alert count (**3,807**), but **August** had the highest monthly alert rate (**4.12%**). Alert counts must be normalized by transaction volume.
+- **UPI** contributed **44.19%** of historical transaction count but **20.46%** of value. Channel volume and monetary exposure are different analytical dimensions.
+- The **July–November synthetic extension** shows **409,000** transactions, **16,244** alerts (**3.97%**), **₹45.28 Cr** potential exposure and **2,465** Critical alerts, of which **796** are multi-scenario.
+- **Maharashtra** leads in alert count (**1,286**), while **Bengaluru** leads city-level potential exposure (**₹1.42 Cr**).
+
+**Data-quality boundary:** The extended dashboard's exposure breakdowns do **not** currently reconcile to the headline potential-exposure KPI; other visual discrepancies are documented in [Insights / open checks](docs/INSIGHTS.md#4-outstanding-quality-checks-before-claiming-complete-reconciliation). Do not treat these synthetic risk figures as confirmed fraud or actual losses.
+
+See also [**Challenges and lessons learned**](docs/CHALLENGES_AND_LEARNINGS.md), including transparent disclosure of AI-assisted Python development.
+
 ## Source and documentation
 
 | Path | Purpose |
@@ -83,6 +98,8 @@ Its investigation table displays **Alert ID, Transaction ID, Customer ID, Transa
 | [`kql/06_Final_FraudAlerts_Updated.kql`](kql/06_Final_FraudAlerts_Updated.kql) | Five KQL rules and consolidated alert logic |
 | [`kql/07_Persist_FraudAlerts_Updated.kql`](kql/07_Persist_FraudAlerts_Updated.kql) | Persist consolidated alerts |
 | [`docs/Final_BRD.md`](docs/Final_BRD.md) | Full business requirements in readable Markdown |
+| [`docs/INSIGHTS.md`](docs/INSIGHTS.md) | Verified historical and dashboard insights; open reconciliation checks |
+| [`docs/CHALLENGES_AND_LEARNINGS.md`](docs/CHALLENGES_AND_LEARNINGS.md) | Implementation challenges, technical learning and AI-use disclosure |
 | [`docs/README.md`](docs/README.md) | Business scope and validation notes |
 | [`python/requirements.txt`](python/requirements.txt) | Python dependencies |
 
@@ -102,7 +119,7 @@ Select the two synthetic dimension CSVs when prompted and supply your Fabric Eve
 ## Verification boundary
 
 - Fabric Activator rule `Critical_Fraud_Email_Alert` was configured, but **successful email delivery and new-only behavior were not verified**.
-- Current persisted alert totals must be checked in Eventhouse before publication; do not equate them with the 9,678 injected anomaly cases.
+- The historical screenshot reports 9,678 alerts, matching the local injected-case count, but **ID-level detection reconciliation is not independently established**. The extended dashboard displays 16,244 alerts; do not treat either count as proof of detection precision.
 - No machine learning, confirmed fraud, real customer data, guaranteed 24/7 service, regulatory certification, production-grade SLA, or transaction blocking is claimed.
 - Local Power BI paths, Fabric assets and Eventstream connections require reconfiguration for reproduction.
 
