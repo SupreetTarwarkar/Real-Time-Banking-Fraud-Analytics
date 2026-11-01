@@ -1,12 +1,11 @@
 # Power BI report screenshots
 
-The companion asset package includes six screenshots for this folder:
+Six **uploaded** screenshots show the three Power BI report pages in two simulated reporting periods. Each image is embedded with a page description in the [main project README](../../README.md#5-power-bi-dashboard-pages).
 
-- `01_Fraud_Overview_Jul-Sep_2026.png`
-- `02_Fraud_Investigation_Jul-Sep_2026.png`
-- `03_Risk_Patterns_Jul-Sep_2026.png`
-- `04_Fraud_Overview_Jul-Nov_2026.png`
-- `05_Fraud_Investigation_Jul-Nov_2026.png`
-- `06_Risk_Patterns_Jul-Nov_2026.png`
+| Page | Historical: July–September 2026 | Extended synthetic test: July–November 2026 |
+|---|---|---|
+| **Fraud Overview** | [01_Fraud_Overview.png](01_Fraud_Overview.png) | [07_Fraud_Overview_Jul-Nov_2026.png](07_Fraud_Overview_Jul-Nov_2026.png) |
+| **Fraud Investigation** | [02_Fraud_Investigation.png](02_Fraud_Investigation.png) | [08_Fraud_Investigation_Jul-Nov_2026.png](08_Fraud_Investigation_Jul-Nov_2026.png) |
+| **Risk Patterns** | [03_Risk_Patterns.png](03_Risk_Patterns.png) | [09_Risk_Patterns_Jul-Nov_2026.png](09_Risk_Patterns_Jul-Nov_2026.png) |
 
-The first three show the historical July–September reporting view. The remaining three show a later simulated reporting state extending into November; do not interpret those later figures as July–September-only totals.
+The extended dataset contains future-dated November 2026 synthetic test records. It is not a historical real-world observation.

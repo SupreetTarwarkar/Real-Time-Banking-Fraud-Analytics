@@ -50,6 +50,12 @@ jobs:
                   raise ValueError('Uncompressed assets exceed safety limit')
               for name in sorted(allowed):
                   dest = Path(name)
+                  # The user has already uploaded ten verified screenshots under
+                  # their original filenames. Keep those files and avoid a second
+                  # gallery of renamed screenshot copies from the archive.
+                  if name.startswith('screenshots/') and list(dest.parent.glob('*.png')):
+                      print(f'Skipping duplicate screenshot asset: {name}')
+                      continue
                   dest.parent.mkdir(parents=True, exist_ok=True)
                   dest.write_bytes(z.read(name))
           # Activate the portfolio's screenshot previews after the binary files exist.
@@ -75,7 +81,7 @@ jobs:
 
           """
           gallery = '\n'.join(line.strip() for line in gallery.splitlines()) + '\n'
-          if '## Project screenshots' not in readme:
+          if '## 5. Power BI dashboard pages' not in readme and '## Project screenshots' not in readme:
               readme = readme.replace('## Acknowledgments', gallery + '## Acknowledgments')
           readme_path.write_text(readme, encoding='utf-8')
           docs_path = Path('docs/README.md')

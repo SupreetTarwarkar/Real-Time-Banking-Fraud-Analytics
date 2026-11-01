@@ -1,134 +1,205 @@
-# Real-Time Banking Fraud Analytics
+# Real Time Banking Fraud Analytics
 
-**Microsoft Fabric · Eventstream · Eventhouse/KQL · Lakehouse · Power BI · Python**
+**Microsoft Fabric | Eventstream | Eventhouse & KQL | Lakehouse | Power BI | Python**
 
-An end-to-end **synthetic-data** banking fraud-risk analytics portfolio project with five explainable KQL detection rules, a three-page Power BI report, a separate rolling-hour operational dashboard, and a configured Fabric Activator rule.
+An end-to-end banking fraud-risk analytics portfolio project that connects a **Python transaction simulator** to Microsoft Fabric, applies **five explainable fraud-risk rules**, and presents historical and recent alerts through Power BI and a separate Real-Time Dashboard.
 
-> **Disclaimer:** All customers and transactions are synthetic. Alerts are rule-based risk indicators—not confirmed fraud. This is not a production transaction-blocking system.
+**All transactions and customers are synthetic.** Alerts are risk indicators for investigation, not confirmed fraud or actual financial losses.
 
-## Project snapshot
+## 1. Project overview
 
-| Item | Baseline |
+The goal was to understand the complete analytical workflow, not just build a dashboard: generate data, stream events, identify suspicious patterns, persist alerts, analyze business risk and make cases easier to investigate.
+
+**Business questions**
+- When and where are fraud-risk alerts being triggered?
+- Which transaction patterns produce Critical or multi-scenario alerts?
+- Which channels, cities and states account for the highest alert counts and potential exposure?
+- How do transaction volume and alert rates change over time?
+- What can investigators see about an individual flagged transaction?
+
+## 2. Project snapshot
+
+| Metric | July–September 2026 historical simulation | July–November 2026 extended synthetic test |
+|---|---:|---:|
+| Transactions | **240,000** | **409,000** |
+| Synthetic customers | **10,000** | **10,000** |
+| Fraud-risk alerts shown in Power BI | **9,678** | **16,244** |
+| Flagged transaction rate | **4.03%** | **3.97%** |
+| Transaction amount | **₹245.55 Cr** | **₹394.73 Cr** |
+| Estimated potential fraud exposure | **₹26.81 Cr** | **₹45.28 Cr** |
+| Critical alerts | **1,440** | **2,465** |
+| Multi-scenario alerts | **480** | **796** |
+
+**Coverage:** **105** synthetic Indian locations; the report includes state, city and date filters.
+
+The extended simulation includes **future-dated November 2026 test records**. These are controlled synthetic scenarios, not live observations of future real-world transactions.
+
+## 3. Tools and architecture
+
+| Technology | What it does in this project |
 |---|---|
-| Historical period | July–September 2026 |
-| Historical transactions | **240,000** (July 68,400; August 77,600; September 94,000) |
-| Synthetic customers / Indian locations | **10,000 / 105** |
-| Historical dashboard fraud-risk alerts | **9,678 (4.03% of 240,000)** |
-| Local simulator-injected anomaly cases | **9,678** (distinct triggering IDs) |
-| Fraud-risk detection | **5** KQL scenarios |
-| Reporting | **3** Power BI pages and a separate last-hour Real-Time Dashboard |
-
-**Count boundary:** The local simulator ground truth contains **9,678 injected anomaly cases**, and the historical Power BI dashboard **also displays 9,678 fraud-risk alerts**. The matching totals do **not independently prove ID-level equality or detection accuracy**. Injection cases and KQL-detected alerts are conceptually different populations.
-
-## Business objective
-
-Detect and explain potentially suspicious banking transaction patterns; prioritize investigation by severity, customer, location and channel; estimate potential INR exposure; and distinguish historical risk analysis from recent operational monitoring.
-
-## Microsoft Fabric architecture
+| **Python in VS Code** | Generates historical and live-mode synthetic banking transactions and reference dimensions |
+| **Fabric Eventstream** | Receives and routes transaction events |
+| **Eventhouse / KQL** | Queries transactions, applies five detection rules and consolidates alert details |
+| **Fabric pipelines** | Orchestrate dimension updates, alert persistence, OneLake synchronization and semantic model refresh |
+| **Lakehouse / semantic model** | Supports analytical reporting in Power BI |
+| **Power BI** | Provides Fraud Overview, Fraud Investigation and Risk Patterns |
+| **Fabric Real-Time Dashboard** | Monitors the latest one-hour window of transactions and flagged events |
+| **Fabric Activator** | Critical-alert notification rule configured; successful email delivery not yet verified |
 
 ```mermaid
 flowchart LR
- A["Python synthetic simulator"] --> B["Fabric Eventstream"]
- B --> C["Eventhouse: FactTransactions"]
- B --> D["Lakehouse analytical path"]
- C --> E["Five KQL detection rules"]
- E --> F["Consolidated alerts"]
- F --> G["Pipeline: persist FraudAlerts"]
- G --> H["Eventhouse: FraudAlerts"]
- H --> I["Real-Time Dashboard"]
- H --> J["OneLake sync + semantic model refresh"]
- D --> J
- J --> K["Power BI: three report pages"]
- I --> L["Fabric Activator: Critical rule configured"]
+    A["Python transaction simulator"] --> B["Microsoft Fabric Eventstream"]
+    B --> C["Eventhouse: FactTransactions"]
+    B --> D["Lakehouse analytical path"]
+    C --> E["KQL: 5 fraud-risk rules"]
+    E --> F["Consolidated alerts"]
+    F --> G["Fabric pipeline: persist FraudAlerts"]
+    G --> H["Eventhouse: FraudAlerts"]
+    H --> I["Real-Time Dashboard"]
+    H --> J["OneLake sync and semantic model refresh"]
+    D --> J
+    J --> K["Power BI: 3 report pages"]
+    I --> L["Fabric Activator rule"]
 ```
 
-Pipeline execution order: `Update_Live_Transaction_Dimensions` → `Persist_Live_Fraud_Alerts` → `Wait_For_OneLake_Sync` (300 seconds) → `Refresh_Banking_Analytics_Model`.
+### Fabric workspace and architecture
 
-## Implemented detection scenarios
+The workspace brings together the streaming, storage, orchestration, querying and reporting components used in the project.
 
-| Scenario | Rule |
+![Microsoft Fabric workspace architecture](screenshots/fabric/04_Fabric_Architecture.png)
+
+### Eventstream: transaction ingestion
+
+The Eventstream routes simulated transaction events to the downstream Fabric destinations for querying and analysis.
+
+![Microsoft Fabric Eventstream architecture](screenshots/fabric/05_Eventstream_Architecture.png)
+
+### Pipeline: persistence and reporting refresh
+
+The pipeline coordinates **dimension updates → persisted fraud alerts → a 300-second OneLake sync wait → semantic model refresh**. Refreshing a report is separate from generating new transactions.
+
+![Microsoft Fabric live fraud pipeline](screenshots/fabric/06_Live_Fraud_Pipeline.png)
+
+## 4. Fraud detection logic
+
+| Detection rule | What is flagged |
 |---|---|
-| **High Velocity** | ≥3 transactions per customer in a fixed 2-minute window; 4–5 Severe; ≥6 Critical |
-| **Spending Burst** | ≥3 transactions in 15 minutes, total ≥₹50,000; ≥₹75,000 Severe; ≥₹1,00,000 Critical |
-| **Unusual High Value** | Net Banking **Fund Transfers only**; amount >₹25,000 and ≥2× prior comparable average; severity depends on transaction history and ratio |
-| **Unusual Transaction Time** | 00:00–05:00 IST; one in 30-minute window Suspicious, ≥2 Severe |
-| **Impossible Travel** | Consecutive customer transactions ≥500 km apart within ≤30 minutes; ≥800 km or ≤15 minutes Severe |
+| **High Velocity** | At least 3 transactions by a customer in a fixed 2-minute window |
+| **Spending Burst** | At least 3 transactions in 15 minutes totaling at least ₹50,000 |
+| **Unusual High Value** | Net Banking fund transfers over ₹25,000 and at least 2× the customer's comparable prior average |
+| **Unusual Transaction Time** | Transactions between 00:00 and 05:00 IST |
+| **Impossible Travel** | Consecutive customer transactions at least 500 km apart within 30 minutes |
 
-Two or more **distinct** scenarios on one consolidated event escalate final severity to **Critical**. The consolidated alert uses the **maximum** applicable scenario exposure, not the sum of overlapping exposures. [Exact KQL](kql/06_Final_FraudAlerts_Updated.kql).
+A transaction can trigger more than one distinct rule. The KQL consolidates matching scenarios, escalates **two or more distinct scenarios to Critical**, and uses the **maximum applicable scenario exposure within an alert** to avoid adding overlapping amounts. The rules are explainable, deterministic KQL logic, **not a machine-learning model**.
 
-## Power BI report
+[View the complete KQL detection logic](kql/06_Final_FraudAlerts_Updated.kql).
 
-The historical/analytical report contains **Fraud Overview** (management KPIs and trends), **Fraud Investigation** (critical cases, scenarios and investigation details), and **Risk Patterns** (geographic map, state/city rankings, channel risk and weekly patterns).
+## 5. Power BI dashboard pages
 
-The companion project archive contains six report screenshots, including July–September and later July–November simulated reporting states. **November records extend beyond 1 November 2026 and are future-dated synthetic test data**, not elapsed live banking events.
+The report has three connected pages with **state, city and date filters**, KPI cards, trends, rankings and investigation details. Both historical and extended synthetic screenshots are included below.
 
-## Real-Time Dashboard
+### Page 1: Fraud Overview
 
-`RealTime_Banking_Fraud_Monitoring` shows five rolling **last-hour** KPIs:
+**What it shows:** Total transactions, customers, risk alerts, transaction amount, estimated potential exposure and flagged rate. Charts compare severity, monthly/daily trends, gender, age, transaction types, scenarios and payment channels.
 
-**Total Transactions · Fraud Alerts · Critical Alerts · Potential Fraud Exposure (INR) · Alert Rate (%)**
+| Historical view: July–September 2026 | Extended synthetic view: July–November 2026 |
+|:---:|:---:|
+| ![Fraud Overview July to September](screenshots/power-bi/01_Fraud_Overview.png) | ![Fraud Overview July to November](screenshots/power-bi/07_Fraud_Overview_Jul-Nov_2026.png) |
 
-Its investigation table displays **Alert ID, Transaction ID, Customer ID, Transaction Location, Amount (INR), Fraud Scenario, Severity and Alert Reason**. Severity colors: Critical red, Severe yellow, Suspicious blue.
+**Insight:** September had the highest historical alert count (**3,807**), but August had the highest alert rate (**4.12%**). This is why alert counts should be compared against transaction volumes, not interpreted alone.
 
-- **Alert Rate:** distinct flagged transaction IDs ÷ transactions in the **same time window** × 100.
-- **Potential Fraud Exposure:** rule-derived estimated exposure, **not actual loss**.
-- **Live Refresh:** re-runs dashboard queries; it does not generate transactions or guarantee new persisted alerts.
+### Page 2: Fraud Investigation
 
-## Business insights
+**What it shows:** Critical alerts, multi-scenario alerts, critical and multi-scenario exposure, scenario comparisons, alert trends and a case-level investigation table with customer, city, channel, scenario and potential exposure.
 
-The project includes [**detailed findings, calculations and quality checks**](docs/INSIGHTS.md) based on the local historical transaction CSV and Power BI screenshots.
+| Historical view: July–September 2026 | Extended synthetic view: July–November 2026 |
+|:---:|:---:|
+| ![Fraud Investigation July to September](screenshots/power-bi/02_Fraud_Investigation.png) | ![Fraud Investigation July to November](screenshots/power-bi/08_Fraud_Investigation_Jul-Nov_2026.png) |
 
-- **240,000** historical transactions, **10,000** customers and **₹245.55 Cr** synthetic transaction value; all **240,000** IDs unique and **0** missing values across the 10 transaction fields.
-- **September** had the highest historical alert count (**3,807**), but **August** had the highest monthly alert rate (**4.12%**). Alert counts must be normalized by transaction volume.
-- **UPI** contributed **44.19%** of historical transaction count but **20.46%** of value. Channel volume and monetary exposure are different analytical dimensions.
-- The **July–November synthetic extension** shows **409,000** transactions, **16,244** alerts (**3.97%**), **₹45.28 Cr** potential exposure and **2,465** Critical alerts, of which **796** are multi-scenario.
-- **Maharashtra** leads in alert count (**1,286**), while **Bengaluru** leads city-level potential exposure (**₹1.42 Cr**).
+**Insight:** The extended dashboard shows **2,465 Critical alerts** and **796 multi-scenario alerts**. Multi-scenario cases are especially relevant for investigation because multiple independent rules can describe the same flagged event.
 
-**Data-quality boundary:** The extended dashboard's exposure breakdowns do **not** currently reconcile to the headline potential-exposure KPI; other visual discrepancies are documented in [Insights / open checks](docs/INSIGHTS.md#4-outstanding-quality-checks-before-claiming-complete-reconciliation). Do not treat these synthetic risk figures as confirmed fraud or actual losses.
+### Page 3: Risk Patterns
 
-See also [**Challenges and lessons learned**](docs/CHALLENGES_AND_LEARNINGS.md), including transparent disclosure of AI-assisted Python development.
+**What it shows:** State and city rankings, a geographic risk map, customer alert frequency, hourly alert trends, weekly transaction/exposure comparisons and a scenario-by-channel heatmap.
 
-## Source and documentation
+| Historical view: July–September 2026 | Extended synthetic view: July–November 2026 |
+|:---:|:---:|
+| ![Risk Patterns July to September](screenshots/power-bi/03_Risk_Patterns.png) | ![Risk Patterns July to November](screenshots/power-bi/09_Risk_Patterns_Jul-Nov_2026.png) |
 
-| Path | Purpose |
+**Insight:** **Maharashtra** leads the extended state alert count (**1,286**); **New Delhi** leads city alert count (**476**); **Bengaluru** leads city-level potential exposure (**₹1.42 Cr**). The city with the most alerts is not necessarily the city with the highest exposure.
+
+## 6. Real-Time Fraud Monitoring Dashboard
+
+Separate from the three-page Power BI report, this Fabric dashboard monitors a **rolling last-hour window**. It displays five operational KPIs and a transaction-level investigation table.
+
+![Real-Time Banking Fraud Monitoring Dashboard](screenshots/fabric/10_RealTime_Banking_Fraud_Monitoring_Dashboard.png)
+
+**Screenshot snapshot:** **282 transactions | 14 alerts | 1 Critical alert | ₹310.3K potential exposure | 4.96% alert rate**.
+
+The table shows **Alert ID, Transaction ID, Customer ID, transaction location, amount, fraud scenario, severity and alert reason**. These values describe **one captured hour**, not a continuously guaranteed alert rate or lifetime total.
+
+## 7. Key analytical findings
+
+1. **Alert counts and alert rates differ.** September recorded **3,807** alerts; August had the higher normalized rate of **4.12%**.
+2. **Channel activity and monetary value differ.** In the inspected 240,000-row historical CSV, **UPI represented 44.19% of transactions but 20.46% of transaction value**.
+3. **Critical alerts need scenario context.** The extended dashboard shows **796 multi-scenario alerts** alongside **2,465 Critical alerts**.
+4. **Geography matters differently for counts and exposure.** Maharashtra has the highest state alert count, while Bengaluru leads city-level potential exposure in the extended synthetic view.
+5. **Data quality and KPI reconciliation matter.** The historical CSV has **240,000 unique transaction IDs** and **no missing values across the 10 transaction fields**. Some extended report exposure breakdowns still need reconciliation with their headline KPI; these checks are documented rather than hidden.
+
+[**Read the full business insights and calculations**](docs/INSIGHTS.md) | [**Validation and open checks**](docs/VALIDATION.md)
+
+## 8. Features and learnings
+
+- Designed a synthetic historical and controlled live-mode transaction simulator with customer and location reference data.
+- Applied customer-level KQL aggregations, time windows, IST conversion and location-distance checks.
+- Consolidated overlapping scenarios into investigation-ready alerts with severity rules.
+- Connected event ingestion, persistence, OneLake synchronization and Power BI refresh.
+- Built three Power BI analytical pages and a separate last-hour operational dashboard.
+- Configured a Critical-alert rule in Fabric Activator; email delivery remains unverified.
+- Used **ChatGPT to assist Python simulator development and debugging in VS Code**, while focusing on validating outputs and understanding the Fabric and fraud-rule integration.
+
+[**Read the challenges and lessons learned**](docs/CHALLENGES_AND_LEARNINGS.md).
+
+## 9. Project files
+
+| Folder / file | Contents |
 |---|---|
-| [`python/RealTime_Banking_Fraud_FINAL.py`](python/RealTime_Banking_Fraud_FINAL.py) | **User-confirmed final** historical/live synthetic simulator |
-| [`python/generate_dim_customer_FINAL.py`](python/generate_dim_customer_FINAL.py) | Deterministic synthetic customer generator |
-| [`python/generate_dim_location_FINAL.py`](python/generate_dim_location_FINAL.py) | Indian location reference generator |
-| [`kql/06_Final_FraudAlerts_Updated.kql`](kql/06_Final_FraudAlerts_Updated.kql) | Five KQL rules and consolidated alert logic |
-| [`kql/07_Persist_FraudAlerts_Updated.kql`](kql/07_Persist_FraudAlerts_Updated.kql) | Persist consolidated alerts |
-| [`docs/Final_BRD.md`](docs/Final_BRD.md) | Full business requirements in readable Markdown |
-| [`docs/INSIGHTS.md`](docs/INSIGHTS.md) | Verified historical and dashboard insights; open reconciliation checks |
-| [`docs/CHALLENGES_AND_LEARNINGS.md`](docs/CHALLENGES_AND_LEARNINGS.md) | Implementation challenges, technical learning and AI-use disclosure |
-| [`docs/README.md`](docs/README.md) | Business scope and validation notes |
-| [`python/requirements.txt`](python/requirements.txt) | Python dependencies |
+| [`python/`](python/) | Final synthetic simulator, customer/location generators and dependencies |
+| [`kql/`](kql/) | Five detection rules and consolidated alert persistence scripts |
+| [`data/`](data/) | Synthetic customer and location dimensions plus a 200-row transaction sample |
+| [`docs/Final_BRD.md`](docs/Final_BRD.md) | Business requirements document |
+| [`docs/INSIGHTS.md`](docs/INSIGHTS.md) | Business insights, calculations and open data-quality checks |
+| [`screenshots/power-bi/`](screenshots/power-bi/) | **Six Power BI screenshots** covering the three report pages |
+| [`screenshots/fabric/`](screenshots/fabric/) | **Four Fabric screenshots** covering architecture, Eventstream, pipeline and live dashboard |
+| [`reports/`](reports/) | Report documentation; the PBIX binary is **not yet uploaded** |
 
-The **synthetic dimension CSVs and a 200-row transaction sample** are available in [data/](data/), and the [BRD is readable online](docs/Final_BRD.md). The formatted DOCX, PBIX and 10 project screenshots are supplied in the companion archive for repository upload.
+The **interactive Power BI report URL** will be added when available.
 
-### Run the simulator locally
+### Run the simulator
 
 ```bash
 python -m pip install -r python/requirements.txt
 python python/RealTime_Banking_Fraud_FINAL.py
 ```
 
-Select the two synthetic dimension CSVs when prompted and supply your Fabric Eventstream connection string **privately**. **Option 1** sends the July–September 2026 historical synthetic transactions (240,000); **Option 2** sends controlled live-mode synthetic transactions beginning October 2026. The stream is simulated; no real bank events are used. Rerunning can resend events.
+Use the synthetic dimensions in `data/`. Fabric Eventstream credentials and connections must be configured privately. **Option 1** is the July–September 2026 historical simulation; **Option 2** is controlled live-mode synthetic generation. Rerunning may resend events.
 
-**KQL safety:** `07_Persist_FraudAlerts_Updated.kql` uses `.set-or-replace FraudAlerts`, which **replaces the existing persisted table**. Review the output before running it in your own development Eventhouse.
+**KQL caution:** The supplied alert-persistence script uses `.set-or-replace FraudAlerts` and can overwrite existing persisted alerts. Review it before executing it in a development Eventhouse.
 
-## Verification boundary
+## 10. Acknowledgments
 
-- Fabric Activator rule `Critical_Fraud_Email_Alert` was configured, but **successful email delivery and new-only behavior were not verified**.
-- The historical screenshot reports 9,678 alerts, matching the local injected-case count, but **ID-level detection reconciliation is not independently established**. The extended dashboard displays 16,244 alerts; do not treat either count as proof of detection precision.
-- No machine learning, confirmed fraud, real customer data, guaranteed 24/7 service, regulatory certification, production-grade SLA, or transaction blocking is claimed.
-- Local Power BI paths, Fabric assets and Eventstream connections require reconfiguration for reproduction.
+- [**Santosh Avalamurthy**](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/) — Microsoft Fabric and Power BI training.
+- [**Mansi Goel**](https://www.linkedin.com/in/mansigoelofficial/) — Microsoft Fabric tutorials, Power BI and data analytics learning resources.
 
-## Acknowledgments
+This is an independently assembled educational portfolio project. These acknowledgments do not imply that either educator developed, reviewed or endorsed this implementation.
 
-- **[Mansi Goel](https://www.linkedin.com/in/mansigoelofficial/)** — data analytics, SQL, Power BI and career-development learning resources.
-- **[Santosh Avalamurthy](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/)** — Microsoft Fabric and Power BI training resources.
+## 11. Author
 
-Independent portfolio implementation; these acknowledgments do **not** imply development, review or endorsement by either individual.
+**Supreet Jayant Tarwarkar**
+
+[GitHub](https://github.com/SupreetTarwarkar) | [LinkedIn](https://www.linkedin.com/in/supreettarwarkar/)
 
 ---
-*Educational synthetic-data project. Alerts indicate investigation priorities; potential exposure is not realized loss.*
+
+*All data are synthetic. Fraud-risk alerts are not confirmed fraud, and potential exposure is not realized financial loss.*
