@@ -1,0 +1,297 @@
+// 07_Persist_FraudAlerts
+// Rebuild persisted alerts from the existing five detection rules.
+// WARNING: .set-or-replace replaces existing FraudAlerts data.
+// Validate the query output before running this command.
+.set-or-replace FraudAlerts with (extend_schema=true) <|
+
+let VelocityAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),
+    potential_exposure_inr = sum(amount),
+    arg_max(transaction_timestamp, transaction_id)
+    by customer_id, window_start = bin(transaction_timestamp, 2m)
+| where tx_count >= 3
+| extend fraud_scenario = "High Velocity"
+| extend scenario_severity = case(
+    tx_count >= 6, "Critical",
+    tx_count >= 4, "Severe",
+    "Suspicious"
+)
+| extend alert_timestamp = transaction_timestamp
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions detected within a 2-minute window"
+)
+| extend detection_method = "KQL Rule"
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+let SpendingBurstAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),
+    potential_exposure_inr = sum(amount),
+    arg_max(transaction_timestamp, transaction_id)
+    by customer_id, window_start = bin(transaction_timestamp, 15m)
+| where tx_count >= 3
+    and potential_exposure_inr >= 50000
+| extend fraud_scenario = "Spending Burst"
+| extend scenario_severity = case(
+    potential_exposure_inr >= 100000, "Critical",
+    potential_exposure_inr >= 75000, "Severe",
+    "Suspicious"
+)
+| extend alert_timestamp = transaction_timestamp
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions totaling INR ",
+    tostring(round(potential_exposure_inr, 0)),
+    " within a 15-minute window"
+)
+| extend detection_method = "KQL Rule"
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+let NetBankingSequence =
+FactTransactions
+| where payment_channel == "Net Banking"
+    and transaction_type == "Fund Transfer"
+| sort by customer_id asc, transaction_timestamp asc
+| serialize
+| extend restart_customer = customer_id != prev(customer_id)
+| extend tx_number = row_number(1, restart_customer)
+| extend cumulative_amount = row_cumsum(amount, restart_customer)
+| extend prior_tx_count = tx_number - 1
+| extend prior_avg_amount = iff(
+    prior_tx_count > 0,
+    (cumulative_amount - amount) / todouble(prior_tx_count),
+    real(null)
+)
+| extend amount_ratio = iff(
+    prior_tx_count >= 1 and prior_avg_amount > 0,
+    amount / prior_avg_amount,
+    real(null)
+);
+
+let HighValueAlerts =
+NetBankingSequence
+| where prior_tx_count >= 1
+    and amount > 25000
+    and amount_ratio >= 2.0
+| extend fraud_scenario = "Unusual High Value"
+| extend scenario_severity = case(
+    prior_tx_count == 1, "Suspicious",
+    amount_ratio >= 4.0, "Critical",
+    amount_ratio >= 3.0, "Severe",
+    "Suspicious"
+)
+| extend alert_timestamp = transaction_timestamp
+| extend alert_reason = case(
+    prior_tx_count == 1,
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the previous comparable transfer; limited history so severity capped at Suspicious"
+    ),
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the customer's prior Net Banking transfer average"
+    )
+)
+| extend potential_exposure_inr = amount
+| extend detection_method = "KQL Rule"
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+let OffHourTransactions =
+FactTransactions
+| extend business_timestamp = transaction_timestamp + 5h + 30m
+| where hourofday(business_timestamp) >= 0
+    and hourofday(business_timestamp) < 5
+| extend business_window = bin(business_timestamp, 30m);
+
+let OffHourAlerts =
+OffHourTransactions
+| summarize
+    offhour_tx_count = count(),
+    potential_exposure_inr = sum(amount),
+    arg_max(transaction_timestamp, transaction_id)
+    by customer_id, business_window
+| extend fraud_scenario = "Unusual Transaction Time"
+| extend scenario_severity = iff(
+    offhour_tx_count >= 2,
+    "Severe",
+    "Suspicious"
+)
+| extend alert_timestamp = transaction_timestamp
+| extend alert_reason = strcat(
+    tostring(offhour_tx_count),
+    " transaction(s) detected between 00:00 and 05:00 IST within a 30-minute window"
+)
+| extend detection_method = "KQL Rule"
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+let GeoTransactions =
+FactTransactions
+| join kind=leftouter (
+    external_table('dimlocation')
+    | project
+        location_id,
+        city,
+        state_ut,
+        latitude,
+        longitude
+) on location_id
+| sort by customer_id asc, transaction_timestamp asc
+| serialize
+| extend
+    prev_customer_id = prev(customer_id),
+    prev_timestamp = prev(transaction_timestamp),
+    prev_latitude = prev(latitude),
+    prev_longitude = prev(longitude),
+    prev_city = prev(city)
+| where customer_id == prev_customer_id
+| extend minutes_diff =
+    datetime_diff(
+        'minute',
+        transaction_timestamp,
+        prev_timestamp
+    )
+| extend distance_km =
+    geo_distance_2points(
+        longitude,
+        latitude,
+        prev_longitude,
+        prev_latitude
+    ) / 1000.0;
+
+let ImpossibleTravelAlerts =
+GeoTransactions
+| where minutes_diff >= 0
+    and minutes_diff <= 30
+    and distance_km >= 500
+| extend fraud_scenario = "Impossible Travel"
+| extend scenario_severity = case(
+    distance_km >= 800, "Severe",
+    minutes_diff <= 15, "Severe",
+    "Suspicious"
+)
+| extend alert_timestamp = transaction_timestamp
+| extend alert_reason = strcat(
+    "Approx. ",
+    tostring(round(distance_km, 0)),
+    " km location change from ",
+    tostring(prev_city),
+    " to ",
+    tostring(city),
+    " within ",
+    tostring(minutes_diff),
+    " minutes"
+)
+| extend potential_exposure_inr = amount
+| extend detection_method = "KQL Rule"
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+let AllScenarioAlerts =
+union
+    VelocityAlerts,
+    SpendingBurstAlerts,
+    HighValueAlerts,
+    OffHourAlerts,
+    ImpossibleTravelAlerts;
+
+let FinalAlerts =
+AllScenarioAlerts
+| extend scenario_detail = strcat(
+    fraud_scenario,
+    " = ",
+    scenario_severity
+)
+| summarize
+    scenario_count = dcount(fraud_scenario),
+    fraud_scenarios = make_set(fraud_scenario),
+    scenario_details = make_set(scenario_detail),
+    reasons = make_set(alert_reason),
+    potential_exposure_inr = max(potential_exposure_inr)
+    by transaction_id, customer_id, alert_timestamp
+| extend fraud_scenario = strcat_array(
+    fraud_scenarios,
+    " + "
+)
+| extend scenario_category = iff(
+    scenario_count >= 2,
+    "Multi-Scenario",
+    fraud_scenario
+)
+| extend scenario_severity = strcat_array(
+    scenario_details,
+    " | "
+)
+| extend final_severity_level = case(
+    scenario_count >= 2, "Critical",
+    scenario_severity contains "Critical", "Critical",
+    scenario_severity contains "Severe", "Severe",
+    "Suspicious"
+)
+| extend alert_reason = strcat_array(
+    reasons,
+    " | "
+)
+| extend detection_method = "KQL Rule"
+| extend alert_id = strcat(
+    "ALT-",
+    transaction_id
+)
+| project
+    alert_id,
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    final_severity_level,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method,
+    scenario_category;
+
+FinalAlerts

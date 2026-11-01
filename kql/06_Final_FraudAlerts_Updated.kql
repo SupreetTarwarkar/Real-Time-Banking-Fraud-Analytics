@@ -1,0 +1,378 @@
+// ================================================================
+// 06_Final_FraudAlerts
+// PURPOSE:
+// Run all 5 fraud-risk rules, combine overlapping detections,
+// apply the global severity rule, and produce ONE final alert
+// per triggering transaction/activity event.
+// ================================================================
+
+
+// ================================================================
+// RULE 1 — HIGH VELOCITY
+// 3 tx in 2 min = Suspicious
+// 4-5 tx in 2 min = Severe
+// 6+ tx in 2 min = Critical
+// ================================================================
+
+let VelocityAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),                                                        // Count same-customer transactions inside each 2-minute window
+    potential_exposure_inr = sum(amount),                                      // Total INR exposure inside the velocity window
+    arg_max(transaction_timestamp, transaction_id)                             // Keep latest transaction that completes the suspicious window
+    by customer_id, window_start = bin(transaction_timestamp, 2m)             // Fixed 2-minute customer windows
+| where tx_count >= 3                                                         // Minimum threshold for High Velocity
+| extend fraud_scenario = "High Velocity"                                     // Scenario name
+| extend scenario_severity = case(
+    tx_count >= 6, "Critical",                                                // 6+ transactions = Critical
+    tx_count >= 4, "Severe",                                                  // 4-5 transactions = Severe
+    "Suspicious"                                                              // Exactly 3 transactions = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Triggering transaction timestamp
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions detected within a 2-minute window"
+)                                                                                  // Explainable investigation reason
+| extend detection_method = "KQL Rule"                                        // Deterministic rule detection
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+
+// ================================================================
+// RULE 2 — SPENDING BURST
+// 3+ tx / 15 min + >= INR 50K = Suspicious
+// >= INR 75K = Severe
+// >= INR 1 Lakh = Critical
+// ================================================================
+
+let SpendingBurstAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),                                                        // Count same-customer transactions inside 15 minutes
+    potential_exposure_inr = sum(amount),                                      // Cumulative spend inside the window
+    arg_max(transaction_timestamp, transaction_id)                             // Keep latest transaction completing the burst
+    by customer_id, window_start = bin(transaction_timestamp, 15m)            // Fixed 15-minute customer windows
+| where tx_count >= 3
+    and potential_exposure_inr >= 50000                                       // Minimum Spending Burst threshold
+| extend fraud_scenario = "Spending Burst"                                    // Scenario name
+| extend scenario_severity = case(
+    potential_exposure_inr >= 100000, "Critical",                             // INR 1,00,000+ = Critical
+    potential_exposure_inr >= 75000, "Severe",                                // INR 75,000-99,999 = Severe
+    "Suspicious"                                                              // INR 50,000-74,999 = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Triggering transaction timestamp
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions totaling INR ",
+    tostring(round(potential_exposure_inr, 0)),
+    " within a 15-minute window"
+)                                                                                  // Explainable spending-burst reason
+| extend detection_method = "KQL Rule"                                        // Deterministic rule detection
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+
+// ================================================================
+// RULE 3 — UNUSUAL HIGH VALUE
+// Calibrated behavioural rule for this project:
+// Net Banking + Fund Transfer only
+// >=2x prior comparable average = alert
+// One prior comparable tx => severity capped at Suspicious
+// 2+ prior comparable tx => normal 2x / 3x / 4x severity logic
+// ================================================================
+
+let NetBankingSequence =
+FactTransactions
+| where payment_channel == "Net Banking"
+    and transaction_type == "Fund Transfer"                                  // Compare like-for-like Net Banking transfer behaviour
+| sort by customer_id asc, transaction_timestamp asc                         // Customer transfers in chronological order
+| serialize                                                                   // Preserve row order for running calculations
+| extend restart_customer = customer_id != prev(customer_id)                 // Restart calculations when customer changes
+| extend tx_number = row_number(1, restart_customer)                         // Sequential comparable transfer number
+| extend cumulative_amount = row_cumsum(amount, restart_customer)            // Running transfer amount total
+| extend prior_tx_count = tx_number - 1                                      // Previous comparable transfers available
+| extend prior_avg_amount = iff(
+    prior_tx_count > 0,
+    (cumulative_amount - amount) / todouble(prior_tx_count),                 // Average excludes the current transaction
+    real(null)
+)
+| extend amount_ratio = iff(
+    prior_tx_count >= 1 and prior_avg_amount > 0,
+    amount / prior_avg_amount,                                                // Current transfer vs prior comparable average
+    real(null)
+);
+
+let HighValueAlerts =
+NetBankingSequence
+| where prior_tx_count >= 1                                                   // At least one comparable historical transfer required
+    and amount > 25000                                                        // Current transfer must exceed INR 25,000
+    and amount_ratio >= 2.0                                                   // Current transfer must be at least 2x prior average
+| extend fraud_scenario = "Unusual High Value"                               // Scenario name
+| extend scenario_severity = case(
+    prior_tx_count == 1, "Suspicious",                                       // Limited baseline => severity capped at Suspicious
+    amount_ratio >= 4.0, "Critical",                                         // 4x+ prior average = Critical
+    amount_ratio >= 3.0, "Severe",                                           // 3x-<4x = Severe
+    "Suspicious"                                                              // 2x-<3x = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Triggering transaction timestamp
+| extend alert_reason = case(
+    prior_tx_count == 1,
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the previous comparable transfer; limited history so severity capped at Suspicious"
+    ),                                                                         // Explain limited-history decision
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the customer's prior Net Banking transfer average"
+    )
+)
+| extend potential_exposure_inr = amount                                      // Current high-value transaction exposure
+| extend detection_method = "KQL Rule"                                        // Deterministic rule detection
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+
+// ================================================================
+// RULE 4 — UNUSUAL TRANSACTION TIME
+// Business timezone = IST
+// 00:00-05:00 IST
+// 1 transaction = Suspicious
+// 2+ transactions in same 30-minute window = Severe
+// Critical only comes later through multi-scenario escalation.
+// ================================================================
+
+let OffHourTransactions =
+FactTransactions
+| extend business_timestamp = transaction_timestamp + 5h + 30m               // Convert stored UTC timestamp to IST
+| where hourofday(business_timestamp) >= 0
+    and hourofday(business_timestamp) < 5                                     // Off-hours = midnight to 05:00 IST
+| extend business_window = bin(business_timestamp, 30m);                      // Fixed 30-minute IST windows
+
+let OffHourAlerts =
+OffHourTransactions
+| summarize
+    offhour_tx_count = count(),                                               // Number of off-hour transactions inside the window
+    potential_exposure_inr = sum(amount),                                     // INR exposure inside that off-hour window
+    arg_max(transaction_timestamp, transaction_id)                            // Latest transaction completing the window
+    by customer_id, business_window
+| extend fraud_scenario = "Unusual Transaction Time"                          // Scenario name
+| extend scenario_severity = iff(
+    offhour_tx_count >= 2,
+    "Severe",                                                                 // 2+ off-hour transactions = Severe
+    "Suspicious"                                                              // One off-hour transaction = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Triggering transaction timestamp
+| extend alert_reason = strcat(
+    tostring(offhour_tx_count),
+    " transaction(s) detected between 00:00 and 05:00 IST within a 30-minute window"
+)                                                                                  // Explainable off-hour reason
+| extend detection_method = "KQL Rule"                                        // Deterministic rule detection
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+
+// ================================================================
+// RULE 5 — IMPOSSIBLE TRAVEL
+// >=500 km within 30 min = Suspicious
+// >=800 km within 30 min OR >=500 km within <=15 min = Severe
+// Critical only comes later through multi-scenario escalation.
+// ================================================================
+
+let GeoTransactions =
+FactTransactions
+| join kind=leftouter (
+    external_table('dimlocation')                                            // Read DimLocation from Lakehouse through OneLake shortcut
+    | project
+        location_id,
+        city,
+        state_ut,
+        latitude,
+        longitude
+) on location_id                                                             // Attach coordinates to every transaction
+| sort by customer_id asc, transaction_timestamp asc                         // Arrange transactions chronologically by customer
+| serialize                                                                   // Preserve order for prev() calculations
+| extend
+    prev_customer_id = prev(customer_id),                                    // Previous row's customer
+    prev_timestamp = prev(transaction_timestamp),                            // Previous transaction time
+    prev_latitude = prev(latitude),                                          // Previous latitude
+    prev_longitude = prev(longitude),                                        // Previous longitude
+    prev_city = prev(city)                                                   // Previous city
+| where customer_id == prev_customer_id                                      // Compare consecutive transactions from same customer only
+| extend minutes_diff =
+    datetime_diff(
+        'minute',
+        transaction_timestamp,
+        prev_timestamp
+    )                                                                         // Time gap between transactions
+| extend distance_km =
+    geo_distance_2points(
+        longitude,
+        latitude,
+        prev_longitude,
+        prev_latitude
+    ) / 1000.0;                                                               // Geographic distance in kilometres
+
+let ImpossibleTravelAlerts =
+GeoTransactions
+| where minutes_diff >= 0
+    and minutes_diff <= 30                                                    // Maximum allowed time gap
+    and distance_km >= 500                                                    // Minimum impossible-travel distance
+| extend fraud_scenario = "Impossible Travel"                                // Scenario name
+| extend scenario_severity = case(
+    distance_km >= 800, "Severe",                                            // 800 km+ inside 30 min = Severe
+    minutes_diff <= 15, "Severe",                                            // 500 km+ inside <=15 min = Severe
+    "Suspicious"                                                              // 500 km+ inside 16-30 min = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Current transaction completes the suspicious pair
+| extend alert_reason = strcat(
+    "Approx. ",
+    tostring(round(distance_km, 0)),
+    " km location change from ",
+    tostring(prev_city),
+    " to ",
+    tostring(city),
+    " within ",
+    tostring(minutes_diff),
+    " minutes"
+)                                                                                  // Explainable geographic-risk reason
+| extend potential_exposure_inr = amount                                      // Current transaction amount
+| extend detection_method = "KQL Rule"                                        // Deterministic rule detection
+| project
+    transaction_id,
+    customer_id,
+    alert_timestamp,
+    fraud_scenario,
+    scenario_severity,
+    alert_reason,
+    potential_exposure_inr,
+    detection_method;
+
+
+// ================================================================
+// COMBINE ALL 5 RULE OUTPUTS
+// One transaction may appear more than once here if it triggered
+// more than one fraud-risk scenario.
+// ================================================================
+
+let AllScenarioAlerts =
+union
+    VelocityAlerts,
+    SpendingBurstAlerts,
+    HighValueAlerts,
+    OffHourAlerts,
+    ImpossibleTravelAlerts;
+
+
+// ================================================================
+// CONSOLIDATE MULTI-SCENARIO ALERTS
+//
+// FINAL GLOBAL SEVERITY RULE:
+// 1 Suspicious scenario          => Suspicious
+// 1 Severe scenario              => Severe
+// 1 Critical scenario            => Critical
+// ANY 2+ DISTINCT scenarios      => Critical
+//
+// potential_exposure_inr uses MAX rather than SUM so overlapping
+// scenarios do not double-count the same financial exposure.
+// ================================================================
+
+let FinalAlerts =
+AllScenarioAlerts
+| extend scenario_detail = strcat(
+    fraud_scenario,
+    " = ",
+    scenario_severity
+)                                                                              // Preserve each scenario's individual severity
+| summarize
+    scenario_count = dcount(fraud_scenario),                                  // Number of DISTINCT scenarios triggered by the event
+    fraud_scenarios = make_set(fraud_scenario),                               // Collect triggered scenario names
+    scenario_details = make_set(scenario_detail),                             // Collect scenario + individual severity
+    reasons = make_set(alert_reason),                                         // Collect investigation reasons
+    potential_exposure_inr = max(potential_exposure_inr)                     // Avoid double-counting overlapping scenario exposure
+    by transaction_id, customer_id, alert_timestamp
+| extend fraud_scenario = strcat_array(
+    fraud_scenarios,
+    " + "
+)                                                                              // Example: High Velocity + Spending Burst
+| extend scenario_severity = strcat_array(
+    scenario_details,
+    " | "
+)                                                                              // Example: High Velocity = Suspicious | Spending Burst = Severe
+| extend final_severity_level = case(
+    scenario_count >= 2, "Critical",                                          // GLOBAL OVERRIDE: any 2+ distinct scenarios = Critical
+    scenario_severity contains "Critical", "Critical",                        // Single independently Critical scenario remains Critical
+    scenario_severity contains "Severe", "Severe",                            // Single Severe scenario remains Severe
+    "Suspicious"                                                              // Otherwise Suspicious
+)
+| extend scenario_category = iff(
+    scenario_count >= 2,
+    "Multi-Scenario",
+    fraud_scenario
+)                                                                              // Group overlapping scenarios into one category
+| extend alert_reason = strcat_array(
+    reasons,
+    " | "
+)                                                                              // Combine all applicable investigation reasons
+| extend detection_method = "KQL Rule"                                        // Initial implementation uses KQL rules
+| extend alert_id = strcat(
+    "ALT-",
+    transaction_id
+)                                                                              // Stable portfolio alert identifier: one consolidated alert per transaction
+| project
+    alert_id,                                                                  // Unique consolidated alert ID
+    transaction_id,                                                           // Triggering transaction
+    customer_id,                                                              // Customer involved
+    alert_timestamp,                                                          // Alert event timestamp
+    fraud_scenario,                                                           // One or multiple triggered scenarios
+    scenario_category,                                                        // One of five scenarios or Multi-Scenario
+    scenario_severity,                                                        // Individual scenario severity details
+    final_severity_level,                                                     // Final Suspicious / Severe / Critical classification
+    alert_reason,                                                             // Consolidated explainable reason
+    potential_exposure_inr,                                                   // Highest applicable scenario exposure
+    detection_method;                                                         // KQL Rule
+
+
+// ================================================================
+// TEMPORARY QA CHECK
+// We keep this only while validating the project.
+// Later we will remove this block from the production implementation.
+// ================================================================
+
+FinalAlerts
+| extend Business_Month = format_datetime(
+    alert_timestamp + 5h + 30m,                                              // Convert stored UTC timestamp to IST for reporting
+    "yyyy-MM"
+)
+| summarize Alert_Count = count()
+    by Business_Month, scenario_category, final_severity_level                // QA by month, category and severity
+| order by Business_Month asc, scenario_category asc, final_severity_level asc
