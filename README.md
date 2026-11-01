@@ -85,7 +85,7 @@ Its investigation table displays **Alert ID, Transaction ID, Customer ID, Transa
 | [`docs/README.md`](docs/README.md) | Business scope and validation notes |
 | [`python/requirements.txt`](python/requirements.txt) | Python dependencies |
 
-The BRD, PBIX, synthetic dimension CSVs and 10 project screenshots are in the **companion project package** for repository upload.
+The **synthetic dimension CSVs and a 200-row transaction sample** are available in [data/](data/). The BRD, PBIX and 10 project screenshots are supplied in the companion archive for repository upload.
 
 ### Run the simulator locally
 
