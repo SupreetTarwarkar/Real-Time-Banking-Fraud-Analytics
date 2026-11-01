@@ -74,7 +74,7 @@ jobs:
           Additional evidence: [Eventstream](screenshots/fabric/02_Eventstream_Architecture.png) · [Pipeline](screenshots/fabric/03_Live_Fraud_Pipeline.png) · [Later-state report screenshots](screenshots/power-bi/).
 
           """
-          gallery = '\\n'.join(line.strip() for line in gallery.splitlines()) + '\\n'
+          gallery = '\n'.join(line.strip() for line in gallery.splitlines()) + '\n'
           if '## Project screenshots' not in readme:
               readme = readme.replace('## Acknowledgments', gallery + '## Acknowledgments')
           readme_path.write_text(readme, encoding='utf-8')
@@ -82,6 +82,12 @@ jobs:
           docs = docs_path.read_text(encoding='utf-8')
           docs = docs.replace('**Final_BRD.docx** — professionally formatted three-page Word version included in the companion project archive for upload.', '[**Final_BRD.docx**](Final_BRD.docx) — professionally formatted three-page Word version.')
           docs_path.write_text(docs, encoding='utf-8')
+          for note in ('reports/README.md', 'screenshots/power-bi/README.md', 'screenshots/fabric/README.md'):
+              p = Path(note)
+              content = p.read_text(encoding='utf-8')
+              content = content.replace('is included in the companion asset package and is awaiting binary upload to this folder.', 'is included in this repository.')
+              content = content.replace('The companion asset package includes', 'This folder includes')
+              p.write_text(content, encoding='utf-8')
           print(f'Extracted {len(allowed)} approved binary assets and updated documentation.')
           PY
 
@@ -94,7 +100,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md docs/README.md docs/Final_BRD.docx reports/Banking_Fraud_Risk_Analytics.pbix screenshots/fabric/ screenshots/power-bi/
+          git add README.md docs/README.md docs/Final_BRD.docx reports/README.md reports/Banking_Fraud_Risk_Analytics.pbix screenshots/fabric/ screenshots/power-bi/
           git rm -q Banking_Fraud_GitHub_Remaining_Assets.zip
           git commit -m "assets: publish BRD, PBIX and verified dashboard screenshots"
           git push origin HEAD:main
