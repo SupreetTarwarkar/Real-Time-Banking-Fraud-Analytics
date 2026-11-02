@@ -1,0 +1,79 @@
+let GeoTransactions =
+FactTransactions
+| join kind=leftouter (
+    external_table('dimlocation')                                            // Read geographic master directly from Lakehouse through OneLake shortcut
+    | project
+        location_id,
+        city,
+        state_ut,
+        latitude,
+        longitude
+) on location_id                                                             // Attach city coordinates to every transaction
+| sort by customer_id asc, transaction_timestamp asc                         // Arrange each customer's transactions chronologically
+| serialize                                                                   // Preserve row order so prev() compares consecutive transactions
+| extend
+    prev_customer_id = prev(customer_id),                                    // Previous row's customer
+    prev_timestamp = prev(transaction_timestamp),                            // Previous transaction timestamp
+    prev_latitude = prev(latitude),                                          // Previous transaction latitude
+    prev_longitude = prev(longitude),                                        // Previous transaction longitude
+    prev_city = prev(city)                                                   // Previous transaction city
+| where customer_id == prev_customer_id                                      // Compare only consecutive transactions belonging to the same customer
+| extend minutes_diff =
+    datetime_diff(
+        'minute',
+        transaction_timestamp,
+        prev_timestamp
+    )                                                                         // Time gap between current and previous transaction
+| extend distance_km =
+    geo_distance_2points(
+        longitude,
+        latitude,
+        prev_longitude,
+        prev_latitude
+    ) / 1000.0;                                                               // Geographic distance between consecutive locations in kilometres
+
+
+let ImpossibleTravelAlerts =
+GeoTransactions
+| where minutes_diff >= 0
+    and minutes_diff <= 30                                                    // Transactions must occur within 30 minutes
+    and distance_km >= 500                                                    // IMPOSSIBLE TRAVEL RULE: location jump must be at least 500 km
+| extend fraud_scenario = "Impossible Travel"                                // Fraud-risk scenario name
+| extend scenario_severity = case(
+    distance_km >= 800, "Severe",                                            // >= 800 km within 30 minutes = Severe
+    minutes_diff <= 15, "Severe",                                            // >= 500 km within 15 minutes = Severe
+    "Suspicious"                                                              // >= 500 km within 16-30 minutes = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                             // Current transaction completes the impossible-travel pair
+| extend alert_reason = strcat(
+    "Approx. ",
+    tostring(round(distance_km, 0)),
+    " km location change from ",
+    tostring(prev_city),
+    " to ",
+    tostring(city),
+    " within ",
+    tostring(minutes_diff),
+    " minutes"
+)                                                                              // Explainable reason for analyst/dashboard
+| extend potential_exposure_inr = amount                                     // Potential exposure equals current transaction amount
+| extend detection_method = "KQL Rule"                                       // Deterministic KQL rule
+| project
+    transaction_id,                                                          // Current transaction triggering the alert
+    customer_id,                                                             // Customer involved
+    alert_timestamp,                                                         // Triggering transaction timestamp
+    fraud_scenario,                                                          // Impossible Travel
+    scenario_severity,                                                       // Suspicious / Severe
+    potential_exposure_inr,                                                  // Potential financial exposure
+    alert_reason,                                                            // Explainable investigation reason
+    detection_method;                                                        // KQL Rule
+
+
+ImpossibleTravelAlerts
+| extend Business_Month = format_datetime(
+    alert_timestamp + 5h + 30m,                                              // Convert UTC timestamp to IST for monthly reporting
+    "yyyy-MM"
+)
+| summarize Alert_Count = count()
+    by Business_Month, scenario_severity                                     // Validate month + severity coverage
+| order by Business_Month asc, scenario_severity asc                         // July -> August -> September
