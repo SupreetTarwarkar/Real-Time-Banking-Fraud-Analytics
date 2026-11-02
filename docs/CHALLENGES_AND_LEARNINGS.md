@@ -62,7 +62,7 @@ This project connects synthetic event generation, real-time querying, alert cons
 
 **Implementation:** The project documents KPI definitions, validates the historical transaction dataset and compares report-level totals with category breakdowns.
 
-**Current status:** Several extended-report visuals require further reconciliation. The differences and affected measures are listed in [Data Validation](VALIDATION.md).
+**Current status:** Several extended-report visuals require further reconciliation. These differences still require reconciliation.
 
 ## 8. Development tools
 
