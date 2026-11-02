@@ -1,0 +1,69 @@
+let NetBankingSequence =
+FactTransactions
+| where payment_channel == "Net Banking"
+    and transaction_type == "Fund Transfer"                                  // Compare comparable Net Banking transfer behaviour only
+| sort by customer_id asc, transaction_timestamp asc                         // Arrange transfers chronologically for each customer
+| serialize                                                                   // Preserve row order for running calculations
+| extend restart_customer = customer_id != prev(customer_id)                 // Restart calculations whenever customer changes
+| extend tx_number = row_number(1, restart_customer)                         // Sequential Net Banking transfer number per customer
+| extend cumulative_amount = row_cumsum(amount, restart_customer)            // Running total of comparable transfer amounts
+| extend prior_tx_count = tx_number - 1                                      // Number of previous comparable Net Banking transfers
+| extend prior_avg_amount = iff(
+    prior_tx_count > 0,
+    (cumulative_amount - amount) / todouble(prior_tx_count),                 // Prior average excluding the current transaction
+    real(null)
+)
+| extend amount_ratio = iff(
+    prior_tx_count >= 1 and prior_avg_amount > 0,
+    amount / prior_avg_amount,                                                // Compare current transfer with customer's prior same-channel average
+    real(null)
+);
+
+
+let HighValueAlerts =
+NetBankingSequence
+| where prior_tx_count >= 1                                                   // At least one previous comparable transfer is required
+    and amount > 25000                                                        // High-value transaction threshold
+    and amount_ratio >= 2.0                                                   // Must be at least 2x prior same-channel average
+| extend fraud_scenario = "Unusual High Value"                               // Fraud-risk scenario
+| extend scenario_severity = case(
+    prior_tx_count == 1, "Suspicious",                                       // Only one prior transfer = low-confidence baseline, so never Severe/Critical
+    amount_ratio >= 4.0, "Critical",                                         // 2+ prior transfers AND >=4x average = Critical
+    amount_ratio >= 3.0, "Severe",                                           // 2+ prior transfers AND >=3x to <4x = Severe
+    "Suspicious"                                                              // >=2x to <3x = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                             // Transaction that triggered the alert
+| extend alert_reason = case(
+    prior_tx_count == 1,
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the previous comparable transfer; limited history so severity capped at Suspicious"
+    ),                                                                         // Explain low-confidence baseline
+    strcat(
+        "Net Banking transfer is ",
+        tostring(round(amount_ratio, 2)),
+        "x the customer's prior Net Banking transfer average"
+    )                                                                          // Explain established behavioural anomaly
+)
+| extend potential_exposure_inr = amount                                     // Current suspicious transaction value
+| extend detection_method = "KQL Rule"                                       // Deterministic KQL detection
+| project
+    transaction_id,                                                          // Triggering transaction
+    customer_id,                                                             // Customer involved
+    alert_timestamp,                                                         // Alert timestamp
+    fraud_scenario,                                                          // Unusual High Value
+    scenario_severity,                                                       // Suspicious / Severe / Critical
+    potential_exposure_inr,                                                  // Potential financial exposure
+    alert_reason,                                                            // Investigation explanation
+    detection_method;                                                        // KQL Rule
+
+
+HighValueAlerts
+| extend Business_Month = format_datetime(
+    alert_timestamp + 5h + 30m,                                              // Convert stored UTC timestamp to IST
+    "yyyy-MM"                                                                // Business month
+)
+| summarize Alert_Count = count()
+    by Business_Month, scenario_severity                                     // Validate all months and severities
+| order by Business_Month asc, scenario_severity asc                         // July -> August -> September
