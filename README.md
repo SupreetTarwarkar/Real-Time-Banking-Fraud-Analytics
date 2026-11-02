@@ -182,8 +182,8 @@ The simulator supports historical generation and controlled live-mode transactio
 
 ## Acknowledgments
 
-- [**Santosh Avalamurthy**](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/) — Microsoft Fabric and Power BI training.
-- [**Mansi Goel**](https://www.linkedin.com/in/mansigoelofficial/) — Microsoft Fabric and data analytics tutorials.
+- [**Santosh Avalamurthy**](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/) - Microsoft Fabric and Power BI training.
+- [**Mansi Goel**](https://www.linkedin.com/in/mansigoelofficial/) - Microsoft Fabric and data analytics tutorials.
 
 ## Author
 
