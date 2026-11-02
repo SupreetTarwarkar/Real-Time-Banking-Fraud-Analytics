@@ -48,18 +48,18 @@ The solution is designed to answer questions that matter to a fraud investigatio
 
 ```mermaid
 flowchart LR
-    A["Python transaction simulator"] --> B["Fabric Eventstream"]
-    B --> C["Eventhouse: transactions"]
-    B --> D["Lakehouse analytical data"]
-    C --> E["KQL detection rules"]
-    E --> F["Consolidated fraud-risk alerts"]
-    F --> G["Fabric pipeline"]
-    G --> H["Eventhouse: FraudAlerts"]
-    H --> I["Real-Time Dashboard"]
-    H --> J["Semantic model refresh"]
+    A["Python Transaction<br/>Simulator"] --> B["Fabric<br/>Eventstream"]
+    B --> C["Eventhouse:<br/>Transactions"]
+    B --> D["Lakehouse:<br/>Analytical Data"]
+    C --> E["KQL Detection<br/>Rules"]
+    E --> F["Consolidated<br/>Fraud-Risk Alerts"]
+    F --> G["Fabric Data<br/>Pipeline"]
+    G --> H["Eventhouse:<br/>FraudAlerts"]
+    H --> I["Real-Time<br/>Dashboard"]
+    H --> J["Semantic Model<br/>Refresh"]
     D --> J
-    J --> K["Power BI report"]
-    I --> L["Fabric Activator"]
+    J --> K["Power BI<br/>Report"]
+    I --> L["Fabric<br/>Activator"]
 ```
 
 ### Microsoft Fabric workspace
