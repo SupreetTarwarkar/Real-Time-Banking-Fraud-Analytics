@@ -1,20 +1,28 @@
 # KQL Fraud Detection
 
-KQL queries evaluate transaction patterns in Eventhouse and prepare consolidated fraud-risk alerts.
+Microsoft Fabric Eventhouse queries for transaction schema creation, rule-based fraud-risk detection, consolidated alert persistence and live-period analysis.
 
-| Script | Function |
+## Query files
+
+| File | Purpose |
 |---|---|
-| [`06_Final_FraudAlerts_Updated.kql`](06_Final_FraudAlerts_Updated.kql) | Five detection scenarios, severity assignment, scenario consolidation and alert details |
-| [`07_Persist_FraudAlerts_Updated.kql`](07_Persist_FraudAlerts_Updated.kql) | Writes consolidated results to the `FraudAlerts` table |
+| [00 - FactTransactions schema](00_Create_FactTransactions.kql) | Defines the ten-field Eventhouse transaction table |
+| [01 - High Velocity](01_High_Velocity.kql) | Detects frequent transactions in two-minute customer windows |
+| [02 - Spending Burst](02_Spending_Burst.kql) | Flags concentrated spending over 15-minute windows |
+| [03 - Unusual High Value](03_Unusual_High_Value.kql) | Compares Net Banking transfers with prior comparable customer activity |
+| [04 - Unusual Transaction Time](04_Unusual_Transaction_Time.kql) | Detects activity between midnight and 05:00 IST |
+| [05 - Impossible Travel](05_Impossible_Travel.kql) | Compares transaction locations and elapsed time |
+| [06 - Final FraudAlerts](06_Final_FraudAlerts_Updated.kql) | Combines five rules, consolidates overlapping scenarios and assigns severity |
+| [07 - Persist FraudAlerts](07_Persist_FraudAlerts_Updated.kql) | Writes consolidated alerts into Eventhouse |
+| [12 - Live-period fraud detection](12_Live_Fraud_Detection.kql) | Read-only view of detected alerts for the October 2026 onward test period |
 
-**Detection scenarios:** High Velocity, Spending Burst, Unusual High Value, Unusual Transaction Time and Impossible Travel.
+The individual scenario queries include monthly summary checks. The final consolidation query also contains a validation-oriented summary. Alert rules are deterministic KQL logic, not a trained fraud prediction model.
 
-Multi-scenario matches are consolidated into a single alert and classified as Critical when two or more distinct rules match.
+## Implementation notes
 
-**Persistence behavior:** The second script uses **`.set-or-replace FraudAlerts`**, which replaces the target table's contents. It is intended for a controlled development workflow and is not an incremental production ingestion pattern.
+- Multiple scenarios for the same triggering event are consolidated into a single alert. Two or more distinct matches result in Critical severity.
+- The persistence query uses `.set-or-replace FraudAlerts`, which **replaces** existing table contents. Do not run it against data you need to preserve.
+- The live-period query reads transaction history and filters the final alert output by date. It does **not** perform incremental writes.
+- The geographic rule relies on the `dimlocation` external table.
 
-[Detection rules](../README.md#fraud-detection-rules) · [Business requirements](../docs/Final_BRD.md)
-
----
-
-[⬅ Back to Main README](../README.md)
+[Project overview](../README.md) | [Business insights](../docs/INSIGHTS.md)
