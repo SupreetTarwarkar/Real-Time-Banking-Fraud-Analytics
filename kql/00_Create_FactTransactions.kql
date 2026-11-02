@@ -1,0 +1,22 @@
+// Create the FactTransactions table for real-time Eventstream ingestion.
+// The schema must match the 10 fields sent by the Python transaction generator.
+// transaction_timestamp will be used for time-window fraud rules in KQL.
+// customer_id and location_id are reference keys for customer and geographic analysis.
+// amount is stored in INR; device_id is retained for future analysis.
+
+.create table FactTransactions (
+    transaction_id: string,
+    transaction_timestamp: datetime,
+    customer_id: long,
+    amount: real,
+    payment_channel: string,
+    transaction_type: string,
+    merchant_category: string,
+    location_id: long,
+    device_id: string,
+    transaction_status: string
+)
+
+
+FactTransactions
+| count
