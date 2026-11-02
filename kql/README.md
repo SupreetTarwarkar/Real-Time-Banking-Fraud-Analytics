@@ -1,6 +1,6 @@
 # KQL Fraud Detection
 
-Microsoft Fabric Eventhouse queries for transaction schema creation, rule-based fraud-risk detection, consolidated alert persistence and live-period analysis.
+Microsoft Fabric Eventhouse queries for transaction schema creation, rule-based fraud-risk detection, consolidated alert persistence and alert analysis.
 
 ## Query files
 
@@ -14,7 +14,6 @@ Microsoft Fabric Eventhouse queries for transaction schema creation, rule-based 
 | [05 - Impossible Travel](05_Impossible_Travel.kql) | Compares transaction locations and elapsed time |
 | [06 - Final FraudAlerts](06_Final_FraudAlerts_Updated.kql) | Combines five rules, consolidates overlapping scenarios and assigns severity |
 | [07 - Persist FraudAlerts](07_Persist_FraudAlerts_Updated.kql) | Writes consolidated alerts into Eventhouse |
-| [12 - Live-period fraud detection](12_Live_Fraud_Detection.kql) | Read-only view of detected alerts for the October 2026 onward test period |
 
 The individual scenario queries include monthly summary checks. The final consolidation query also contains a validation-oriented summary. Alert rules are deterministic KQL logic, not a trained fraud prediction model.
 
@@ -22,7 +21,6 @@ The individual scenario queries include monthly summary checks. The final consol
 
 - Multiple scenarios for the same triggering event are consolidated into a single alert. Two or more distinct matches result in Critical severity.
 - The persistence query uses `.set-or-replace FraudAlerts`, which **replaces** existing table contents. Do not run it against data you need to preserve.
-- The live-period query reads transaction history and filters the final alert output by date. It does **not** perform incremental writes.
 - The geographic rule relies on the `dimlocation` external table.
 
 [Project overview](../README.md) | [Business insights](../docs/INSIGHTS.md)
