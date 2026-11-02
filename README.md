@@ -142,13 +142,13 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 
 ## Business insights
 
-- **Transaction volume versus alert rate:** September led historical alert volume, but August led the normalized rate.
-- **Channel mix:** In the 240,000-transaction historical dataset, **UPI represented 44.19% of transactions and 20.46% of transaction value**. Transaction frequency and monetary value require separate analysis.
-- **Investigation priority:** The extended dashboard shows **796 multi-scenario alerts**, demonstrating the value of combining risk signals for case review.
-- **Geographic concentration:** State and city rankings reveal different leaders for alert counts and potential exposure.
-- **Data quality:** The historical dataset contains **240,000 unique transaction IDs** and no missing values across its ten transaction fields.
+- **Volume versus risk rate:** September had the highest alert count (**3,807**), but August had the highest alert rate (**4.12%**).
+- **Channel behavior:** UPI accounted for **44.19%** of baseline transactions but **20.46%** of their value; frequency and monetary value tell different stories.
+- **Investigation priority:** **796 multi-scenario alerts** in the extended simulation carry multiple rule-based risk signals for review.
+- **Geographic risk:** New Delhi led city-level alert counts (**476**), while Bengaluru led displayed city-level potential exposure (**₹1.42 Cr**).
+- **Exposure interpretation:** Category-level exposure figures are not fully reconciled with the headline metric; these are simulated risk estimates, not confirmed losses.
 
-[**Detailed business analysis and calculations**](docs/INSIGHTS.md)
+[Explore the full analysis](docs/INSIGHTS.md)
 
 ## Implementation highlights
 
