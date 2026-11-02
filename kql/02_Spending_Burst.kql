@@ -1,0 +1,42 @@
+let SpendingBurstAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),                                                        // Count transactions for the same customer inside each 15-minute window
+    potential_exposure_inr = sum(amount),                                      // Calculate cumulative INR value of transactions inside that window
+    arg_max(transaction_timestamp, transaction_id)                             // Keep the latest transaction that caused the burst threshold to be reached
+    by customer_id, window_start = bin(transaction_timestamp, 15m)            // Create fixed 15-minute windows separately for every customer
+| where tx_count >= 3 and potential_exposure_inr >= 50000                     // SPENDING BURST RULE: minimum 3 transactions AND total amount >= INR 50,000
+| extend fraud_scenario = "Spending Burst"                                    // Name of the fraud-risk scenario
+| extend scenario_severity = case(
+    potential_exposure_inr >= 100000, "Critical",                             // INR 1,00,000 or more within 15 minutes = Critical
+    potential_exposure_inr >= 75000, "Severe",                                // INR 75,000 to below INR 1,00,000 = Severe
+    "Suspicious"                                                              // INR 50,000 to below INR 75,000 = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Timestamp of the latest transaction that completed the suspicious burst
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions totaling INR ",
+    tostring(round(potential_exposure_inr, 0)),
+    " within a 15-minute window"                                              // Human-readable explanation for dashboard/investigation
+)
+| extend detection_method = "KQL Rule"                                        // Alert detected using deterministic KQL rule logic
+| project
+    transaction_id,                                                           // Latest transaction responsible for triggering this alert
+    customer_id,                                                              // Customer whose spending activity triggered the rule
+    alert_timestamp,                                                          // Time when the triggering transaction occurred
+    fraud_scenario,                                                           // Spending Burst
+    scenario_severity,                                                        // Suspicious / Severe / Critical
+    tx_count,                                                                 // Number of transactions inside the 15-minute window
+    potential_exposure_inr,                                                   // Total transaction amount involved in the burst
+    alert_reason,                                                             // Explainable reason shown to analyst
+    detection_method;                                                         // KQL Rule
+
+
+SpendingBurstAlerts
+| extend Business_Month = format_datetime(
+    alert_timestamp + 5h + 30m,                                               // Convert stored UTC timestamp to India Standard Time (IST)
+    "yyyy-MM"                                                                 // Month label: 2026-07 / 2026-08 / 2026-09
+)
+| summarize Alert_Count = count()                                             // Count Spending Burst alerts
+    by Business_Month, scenario_severity                                      // Validate each month and severity separately
+| order by Business_Month asc, scenario_severity asc                          // Display July -> August -> September
