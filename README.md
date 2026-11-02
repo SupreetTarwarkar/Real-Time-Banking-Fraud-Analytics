@@ -143,7 +143,10 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 
 ![Real Time Banking Fraud Monitoring Dashboard](screenshots/fabric/10_RealTime_Banking_Fraud_Monitoring_Dashboard.png)
 
-**Captured dashboard view:** **282 transactions**, **14 alerts**, **1 Critical alert**, **₹310.3K** potential exposure and a **4.96%** alert rate. These figures describe the captured one-hour window.
+**Monitoring insights from the captured one-hour window:**
+
+- **14 alerts from 282 transactions (4.96%)**, including **1 Critical alert** requiring priority review.
+- **₹310.3K in estimated potential exposure** highlights the financial value associated with flagged activity, not confirmed losses.
 
 ## Business insights
 
@@ -165,18 +168,7 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 
 [**Engineering challenges and solutions**](docs/CHALLENGES_AND_LEARNINGS.md)
 
-## Repository structure
-
-| Section | Contents |
-|---|---|
-| [**Python**](python/README.md) | Transaction simulator, dimension generators and dependencies |
-| [**KQL**](kql/README.md) | Fraud-risk detection and alert persistence scripts |
-| [**Data**](data/README.md) | Synthetic customer/location dimensions and transaction sample |
-| [**Documentation**](docs/README.md) | Business requirements, analysis, implementation notes and validation |
-| [**Reports**](reports/README.md) | Power BI report pages and report file status |
-| [**Screenshots**](screenshots/README.md) | All ten Power BI and Microsoft Fabric screenshots |
-
-### Running the simulator
+## Running the simulator
 
 ```bash
 python -m pip install -r python/requirements.txt
@@ -196,6 +188,3 @@ The simulator supports historical generation and controlled live-mode transactio
 
 [GitHub](https://github.com/SupreetTarwarkar) | [LinkedIn](https://www.linkedin.com/in/supreettarwarkar/)
 
----
-
-*Educational implementation using synthetic data. Fraud-risk alerts indicate rules matched, not confirmed fraudulent transactions.*
