@@ -158,7 +158,7 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 - Connected Eventstream, Eventhouse, pipelines, Lakehouse and Power BI into an analytical workflow.
 - Designed three Power BI pages and a separate operational monitoring dashboard.
 
-[**Engineering challenges and solutions**](docs/CHALLENGES_AND_LEARNINGS.md) · [**Data validation and metric definitions**](docs/VALIDATION.md)
+[**Engineering challenges and solutions**](docs/CHALLENGES_AND_LEARNINGS.md)
 
 ## Repository structure
 
