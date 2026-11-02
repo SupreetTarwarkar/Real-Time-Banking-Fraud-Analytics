@@ -76,9 +76,9 @@ Historical and recent-window measures must use their own matching time filters. 
 
 | Output | Required content |
 |---|---|
-| Power BI — Fraud Overview | Historical KPIs, trends, date/context slicers and exposure analysis |
-| Power BI — Fraud Investigation | Transaction/customer investigation with scenario, severity and alert-reason context |
-| Power BI — Risk Patterns | Geographic map, city/state rankings, channel-risk rate, scenario-by-channel and weekly-risk analysis |
+| Power BI - Fraud Overview | Historical KPIs, trends, date/context slicers and exposure analysis |
+| Power BI - Fraud Investigation | Transaction/customer investigation with scenario, severity and alert-reason context |
+| Power BI - Risk Patterns | Geographic map, city/state rankings, channel-risk rate, scenario-by-channel and weekly-risk analysis |
 | Real-Time Dashboard | Rolling last-hour **five KPIs**: Transactions, Fraud Alerts, Critical Alerts, Potential Exposure, Alert Rate; plus investigation table |
 | Investigation table | Alert ID, Transaction ID, Customer ID, Transaction Location, Amount (INR), Fraud Scenario, Severity, Alert Reason |
 | Fabric Activator | `Critical_Fraud_Email_Alert` configured; successful email receipt **not verified** |
