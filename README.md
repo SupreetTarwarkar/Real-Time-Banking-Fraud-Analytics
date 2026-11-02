@@ -158,16 +158,6 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 
 [Explore the full analysis](docs/INSIGHTS.md)
 
-## Implementation highlights
-
-- Built a Python-based simulator for historical and controlled live-mode synthetic transactions.
-- Implemented five KQL detection scenarios using time windows, customer history, IST conversion and location-distance calculations.
-- Consolidated multiple scenario matches into explainable alerts with severity and exposure information.
-- Connected Eventstream, Eventhouse, pipelines, Lakehouse and Power BI into an analytical workflow.
-- Designed three Power BI pages and a separate operational monitoring dashboard.
-
-[**Engineering challenges and solutions**](docs/CHALLENGES_AND_LEARNINGS.md)
-
 ## Running the simulator
 
 ```bash
