@@ -8,6 +8,8 @@ The repository includes reference dimensions and a representative sample of the 
 | [`DimLocation.csv`](DimLocation.csv) | **105** | Indian reference locations |
 | [`FactTransactions_sample.csv`](FactTransactions_sample.csv) | **200** | Sample transaction structure and fields |
 
+**Data interpretation:** All banking transactions and customer attributes in this project are synthetic. Fraud-risk alerts indicate rule matches, not confirmed fraudulent transactions; potential exposure is an estimate, not verified financial loss.
+
 The complete historical transaction export and the simulator's private ground-truth validation data are not part of the public repository. The simulator can regenerate synthetic records, which may differ from the original export.
 
 [Python generation scripts](../python/README.md) · [Historical dataset findings](../docs/INSIGHTS.md)
