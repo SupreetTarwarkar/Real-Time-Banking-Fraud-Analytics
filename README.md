@@ -100,6 +100,11 @@ The detection approach is **rule-based KQL**, rather than predictive machine lea
 
 ## Power BI dashboard
 
+**[Watch the Power BI Dashboard Walkthrough (Google Drive)](https://drive.google.com/file/d/1rJwmXtfiAHLeJmS42S8LpeL1Iu5Fq8j8/view?usp=sharing)** | [Video details](videos/README.md)
+
+The recorded walkthrough demonstrates navigation and interactive filtering across the three report pages. The video is hosted externally so it remains accessible independently of the Fabric-hosted report, subject to Google Drive sharing permissions.
+
+
 The report includes **Fraud Overview**, **Fraud Investigation** and **Risk Patterns**. Each page is shown below for both the historical baseline and the extended synthetic test period.
 
 ### 1. Fraud Overview
