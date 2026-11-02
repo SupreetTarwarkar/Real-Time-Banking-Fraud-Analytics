@@ -124,3 +124,7 @@ These bullets describe a **portfolio project**, not professional production expe
 ---
 
 *Source basis: local synthetic FactTransactions CSV, local synthetic ground-truth validation file (not committed), verified KQL scripts, and project Power BI/Fabric screenshots. Calculated percentages are rounded to two decimal places.*
+
+---
+
+[⬅ Back to Main README](../README.md)

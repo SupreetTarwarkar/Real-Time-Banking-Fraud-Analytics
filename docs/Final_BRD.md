@@ -110,3 +110,7 @@ Dashboard Live Refresh re-executes queries; it does not itself generate transact
 Business time is interpreted in **IST** where applicable. Event arrival, persisted-alert updates and Power BI refresh are separate processes. Current persisted-alert totals and notification delivery must be independently verified before public reporting.
 
 **Implementation references:** `kql/06_Final_FraudAlerts_Updated.kql`, `kql/07_Persist_FraudAlerts_Updated.kql`, confirmed final Python simulator and completed dashboard evidence.
+
+---
+
+[⬅ Back to Main README](../README.md)

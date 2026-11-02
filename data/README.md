@@ -1,8 +1,15 @@
 # Synthetic data
 
-The companion project archive contains:
-- `DimCustomer.csv`: 10,000 synthetic customers.
-- `DimLocation.csv`: 105 Indian reference locations.
-- `FactTransactions_sample.csv`: a 200-row **synthetic** transaction schema sample.
+This folder contains **synthetic** project datasets:
 
-The full 240,000-row transaction snapshot and private ground-truth validation data are **not** committed here. Regenerated simulator records need not byte-match a previously exported snapshot.
+- [`DimCustomer.csv`](DimCustomer.csv): **10,000** generated customer records.
+- [`DimLocation.csv`](DimLocation.csv): **105** Indian reference locations.
+- [`FactTransactions_sample.csv`](FactTransactions_sample.csv): **200** synthetic sample transactions for inspecting the schema.
+
+The complete 240,000-row historical transaction snapshot and private ground-truth validation file are **not committed** to this public repository. Regenerating transactions may produce different records.
+
+See [Python simulator](../python/README.md) and [business insights](../docs/INSIGHTS.md).
+
+---
+
+[⬅ Back to Main README](../README.md)

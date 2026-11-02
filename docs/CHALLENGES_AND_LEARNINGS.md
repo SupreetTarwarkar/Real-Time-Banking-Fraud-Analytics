@@ -26,3 +26,7 @@ This project was built as a learning and portfolio exercise. The key work was in
 6. Replace destructive alert-table rebuilds with an appropriately validated incremental persistence strategy if extending the project.
 
 No real bank data, production fraud-prevention accuracy, uninterrupted service or confirmed financial loss is claimed.
+
+---
+
+[⬅ Back to Main README](../README.md)

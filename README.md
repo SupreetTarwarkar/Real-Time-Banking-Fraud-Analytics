@@ -163,16 +163,18 @@ The table shows **Alert ID, Transaction ID, Customer ID, transaction location, a
 
 ## 9. Project files
 
-| Folder / file | Contents |
+Every project folder has a short index with file explanations and a **Back to Main README** link.
+
+| Section | Contents |
 |---|---|
-| [`python/`](python/) | Final synthetic simulator, customer/location generators and dependencies |
-| [`kql/`](kql/) | Five detection rules and consolidated alert persistence scripts |
-| [`data/`](data/) | Synthetic customer and location dimensions plus a 200-row transaction sample |
-| [`docs/Final_BRD.md`](docs/Final_BRD.md) | Business requirements document |
-| [`docs/INSIGHTS.md`](docs/INSIGHTS.md) | Business insights, calculations and open data-quality checks |
-| [`screenshots/power-bi/`](screenshots/power-bi/) | **Six Power BI screenshots** covering the three report pages |
-| [`screenshots/fabric/`](screenshots/fabric/) | **Four Fabric screenshots** covering architecture, Eventstream, pipeline and live dashboard |
-| [`reports/`](reports/) | Report documentation; the PBIX binary is **not yet uploaded** |
+| [**Python**](python/README.md) | Final simulator, customer/location generators and dependencies |
+| [**KQL**](kql/README.md) | Five fraud-risk detection rules and alert persistence scripts |
+| [**Data**](data/README.md) | Synthetic customer and location dimensions plus a 200-row transaction sample |
+| [**Documentation**](docs/README.md) | BRD, business insights, validation and technical learnings |
+| [**Reports**](reports/README.md) | Three Power BI report pages and current PBIX status |
+| [**Screenshots**](screenshots/README.md) | All 10 screenshots and page-by-page image navigation |
+| [**Power BI screenshots**](screenshots/power-bi/README.md) | Six report images covering three pages |
+| [**Fabric screenshots**](screenshots/fabric/README.md) | Four architecture, pipeline and monitoring images |
 
 The **interactive Power BI report URL** will be added when available.
 

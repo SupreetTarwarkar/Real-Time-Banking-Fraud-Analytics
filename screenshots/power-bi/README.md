@@ -9,3 +9,7 @@ Six **uploaded** screenshots show the three Power BI report pages in two simulat
 | **Risk Patterns** | [03_Risk_Patterns.png](03_Risk_Patterns.png) | [09_Risk_Patterns_Jul-Nov_2026.png](09_Risk_Patterns_Jul-Nov_2026.png) |
 
 The extended dataset contains future-dated November 2026 synthetic test records. It is not a historical real-world observation.
+
+---
+
+[⬅ Back to Main README](../../README.md)

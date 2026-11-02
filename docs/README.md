@@ -1,9 +1,14 @@
-# Business documentation
+# Project documentation
 
-- [**Final Business Requirements Document (Markdown)**](Final_BRD.md) — complete, readable business specification: objectives, five KQL rules, KPIs, three Power BI pages, Real-Time Dashboard, acceptance criteria and limitations.
-- **Final_BRD.docx** — professionally formatted three-page Word version included in the companion project archive for upload.
-- [**Business insights and analytical findings**](INSIGHTS.md) — historical CSV analysis, five-month dashboard results, normalized alert rates, channel mix, geographic patterns, and open reconciliation checks.
-- [**Challenges and lessons learned**](CHALLENGES_AND_LEARNINGS.md) — KQL design, event streaming, dashboard development, quality checks and responsible AI-assisted Python coding.
-- [**Validation and interpretation notes**](VALIDATION.md) — 240,000 historical transactions, matching 9,678 aggregate injected/alert counts, ID-level limitations, metric denominators and safe KQL execution.
+- [**Business Requirements Document**](Final_BRD.md) — objectives, five fraud-risk rules, KPIs, Power BI pages, Real-Time Dashboard, acceptance criteria and limitations.
+- [**Business Insights and Analytical Findings**](INSIGHTS.md) — monthly alert rates, channel mix, geographic findings, extended synthetic results and open reconciliation checks.
+- [**Challenges and Lessons Learned**](CHALLENGES_AND_LEARNINGS.md) — KQL, streaming, pipelines, Power BI, quality checks and AI-assisted Python development.
+- [**Validation and Interpretation**](VALIDATION.md) — historical transaction quality, alert-count interpretation, metric definitions and safe KQL execution.
 
-The BRD does not establish production readiness or verified Fabric Activator email delivery.
+**Formatted Word BRD:** `Final_BRD.docx` has not yet been uploaded. The complete readable Markdown version is available above.
+
+The documentation does not establish production readiness, real banking fraud prevalence or verified Fabric Activator email delivery.
+
+---
+
+[⬅ Back to Main README](../README.md)

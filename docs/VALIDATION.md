@@ -21,3 +21,7 @@
 - `07_Persist_FraudAlerts_Updated.kql` contains `.set-or-replace`, which overwrites existing persisted alerts.
 - The extended July–November dataset contains **future-dated synthetic November 2026 transactions** relative to **1 November 2026**.
 - **Open visual reconciliation issues:** extended exposure chart breakdowns approximately **₹48.37 Cr** versus KPI **₹45.28 Cr**; repeat-customer KPI **5,203** versus pie categories **3,179 + 1,601 = 4,780**; historical Critical-by-Scenario bar labels inconsistent with **1,440** Critical-alert headline. See [Insights](INSIGHTS.md#4-outstanding-quality-checks-before-claiming-complete-reconciliation).
+
+---
+
+[⬅ Back to Main README](../README.md)
