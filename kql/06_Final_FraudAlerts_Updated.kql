@@ -8,7 +8,7 @@
 
 
 // ================================================================
-// RULE 1 — HIGH VELOCITY
+// RULE 1 - HIGH VELOCITY
 // 3 tx in 2 min = Suspicious
 // 4-5 tx in 2 min = Severe
 // 6+ tx in 2 min = Critical
@@ -46,7 +46,7 @@ FactTransactions
 
 
 // ================================================================
-// RULE 2 — SPENDING BURST
+// RULE 2 - SPENDING BURST
 // 3+ tx / 15 min + >= INR 50K = Suspicious
 // >= INR 75K = Severe
 // >= INR 1 Lakh = Critical
@@ -87,7 +87,7 @@ FactTransactions
 
 
 // ================================================================
-// RULE 3 — UNUSUAL HIGH VALUE
+// RULE 3 - UNUSUAL HIGH VALUE
 // Calibrated behavioural rule for this project:
 // Net Banking + Fund Transfer only
 // >=2x prior comparable average = alert
@@ -156,7 +156,7 @@ NetBankingSequence
 
 
 // ================================================================
-// RULE 4 — UNUSUAL TRANSACTION TIME
+// RULE 4 - UNUSUAL TRANSACTION TIME
 // Business timezone = IST
 // 00:00-05:00 IST
 // 1 transaction = Suspicious
@@ -202,7 +202,7 @@ OffHourTransactions
 
 
 // ================================================================
-// RULE 5 — IMPOSSIBLE TRAVEL
+// RULE 5 - IMPOSSIBLE TRAVEL
 // >=500 km within 30 min = Suspicious
 // >=800 km within 30 min OR >=500 km within <=15 min = Severe
 // Critical only comes later through multi-scenario escalation.
