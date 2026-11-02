@@ -6,7 +6,7 @@ The Microsoft Fabric-hosted Power BI report presents transaction monitoring, ale
 
 > **Access note:** This is an authenticated Fabric report link, not a public Power BI Publish to web URL. Opening it may require Microsoft sign-in and report access permissions. Availability depends on the associated Fabric workspace and capacity.
 
-**[Watch the dashboard walkthrough (Google Drive)](https://drive.google.com/file/d/1rJwmXtfiAHLeJmS42S8LpeL1Iu5Fq8j8/view?usp=sharing)** - a short demonstration of report navigation, filters and investigation visuals.
+**[Watch the dashboard walkthrough (Google Drive)](https://drive.google.com/file/d/1afmKbpVsvYN4aw0UyvNSp5ByAagLn0pO/view?usp=sharing)** - a short demonstration of report navigation, filters and investigation visuals.
 
 ## Report pages
 
