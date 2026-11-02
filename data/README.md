@@ -1,14 +1,16 @@
-# Synthetic data
+# Synthetic Banking Data
 
-This folder contains **synthetic** project datasets:
+The repository includes reference dimensions and a representative sample of the transaction schema.
 
-- [`DimCustomer.csv`](DimCustomer.csv): **10,000** generated customer records.
-- [`DimLocation.csv`](DimLocation.csv): **105** Indian reference locations.
-- [`FactTransactions_sample.csv`](FactTransactions_sample.csv): **200** synthetic sample transactions for inspecting the schema.
+| Dataset | Records | Purpose |
+|---|---:|---|
+| [`DimCustomer.csv`](DimCustomer.csv) | **10,000** | Synthetic customer attributes |
+| [`DimLocation.csv`](DimLocation.csv) | **105** | Indian reference locations |
+| [`FactTransactions_sample.csv`](FactTransactions_sample.csv) | **200** | Sample transaction structure and fields |
 
-The complete 240,000-row historical transaction snapshot and private ground-truth validation file are **not committed** to this public repository. Regenerating transactions may produce different records.
+The complete historical transaction export and the simulator's private ground-truth validation data are not part of the public repository. The simulator can regenerate synthetic records, which may differ from the original export.
 
-See [Python simulator](../python/README.md) and [business insights](../docs/INSIGHTS.md).
+[Python generation scripts](../python/README.md) · [Historical dataset findings](../docs/INSIGHTS.md)
 
 ---
 

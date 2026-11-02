@@ -1,31 +1,78 @@
-# Challenges and lessons learned
+# Engineering Challenges and Solutions
 
-This project was built as a learning and portfolio exercise. The key work was integrating **synthetic streaming, explainable KQL rules, Microsoft Fabric storage/orchestration and Power BI reporting**.
+This project connects synthetic event generation, real-time querying, alert consolidation, orchestration and analytical reporting within Microsoft Fabric. The main implementation challenges involved maintaining consistent data, preserving the meaning of fraud-risk rules and separating operational monitoring from historical reporting.
 
-| Challenge | Implementation or lesson | Evidence |
-|---|---|---|
-| Designing realistic synthetic data without using real customer information | Python generator with historical and controlled live modes; 10,000 synthetic customers and Indian location dimension | `python/` and `data/` |
-| Complete date coverage | Earlier simulation required coverage fixes for the 1st and 28th–31st of relevant months; the historical baseline covers July–September | Final simulator and historical transaction CSV |
-| Five different fraud-risk patterns | Used fixed time-window aggregation, customer-level transfer history, IST conversion and geospatial distance checks | `kql/06_Final_FraudAlerts_Updated.kql` |
-| One event matching several rules | Consolidated distinct scenarios, escalated multi-scenario cases to Critical and used maximum applicable exposure to avoid overlap within the same alert | KQL `FinalAlerts` |
-| Separating real-time display from persisted data | Learned that Eventstream ingestion, KQL execution, pipeline persistence, dashboard query refresh and semantic-model refresh are separate operations | Fabric pipeline and Real-Time Dashboard |
-| Building investigation-ready visuals | Created three Power BI pages with date/geographic filtering, critical alerts, scenario/channel views and risk maps | PBIX and screenshots in companion asset package |
-| Avoiding misleading metrics | Compared raw counts with normalized rates; distinguished potential exposure from actual loss and injected anomalies from persisted detections | [Insights](INSIGHTS.md) |
-| Reconciling report totals | Identified mismatches between headline exposure and chart breakdowns, and between repeat-customer KPI and chart categories; **reconciliation remains open** | [Outstanding QA checks](INSIGHTS.md#4-outstanding-quality-checks-before-claiming-complete-reconciliation) |
-| Managing destructive persistence | `.set-or-replace FraudAlerts` overwrites prior records; needs validation and a safer incremental approach for production use | `kql/07_Persist_FraudAlerts_Updated.kql` |
-| Alert notifications | Configured Fabric Activator for Critical events, but successful email delivery was not independently verified | Project configuration |
-| Python expertise and responsible AI use | Used **ChatGPT to assist Python simulator development and debugging in VS Code**; concentrated on understanding inputs, detection logic, outputs, Fabric integration and reporting. This is **AI-assisted coding**, not a claim of advanced independent Python engineering | Final Python simulator |
+## 1. Generating synthetic transactions
 
-## Next validation priorities
+**Challenge:** Produce a sizeable transaction dataset with customer, payment-channel, time and location attributes while keeping all information synthetic.
 
-1. Reconcile the Power BI exposure charts against the headline measure, with matching filter context and distinct alert grain.
-2. Check repeat-customer KPI and chart denominators.
-3. Verify the historical Critical-by-Scenario visual.
-4. Perform an ID-level join of persisted alerts to locally held synthetic ground truth before claiming detection precision/recall.
-5. Test Fabric Activator delivery and duplicate-notification behavior in a controlled environment.
-6. Replace destructive alert-table rebuilds with an appropriately validated incremental persistence strategy if extending the project.
+**Implementation:** A Python simulator supports historical and controlled live-mode generation. Separate scripts generate the customer and location dimensions. The historical baseline contains **240,000 transactions**, **10,000 customers** and **105 Indian locations**.
 
-No real bank data, production fraud-prevention accuracy, uninterrupted service or confirmed financial loss is claimed.
+**Result:** The transaction dataset can be used to test ingestion, rule evaluation and reporting without exposing real customer records.
+
+## 2. Maintaining complete date coverage
+
+**Challenge:** Early simulation runs required corrections to cover the beginning and end of calendar months.
+
+**Implementation:** The final generator includes date-coverage handling for the 1st and the 28th–31st, where applicable, while retaining the transaction schema used by the analytical model.
+
+**Result:** Historical reporting can be organized across complete calendar periods rather than partial date ranges.
+
+## 3. Implementing explainable fraud-risk rules
+
+**Challenge:** Detect different transaction patterns using appropriate customer history, time windows, local time and geographic distance.
+
+**Implementation:** Five KQL scenarios cover **High Velocity, Spending Burst, Unusual High Value, Unusual Transaction Time and Impossible Travel**. The logic uses fixed windows, customer-level comparisons, IST conversion and distance-based checks.
+
+**Result:** Each alert can be associated with a defined rule and an investigation reason rather than an opaque model score.
+
+[View detection KQL](../kql/06_Final_FraudAlerts_Updated.kql)
+
+## 4. Handling overlapping scenarios
+
+**Challenge:** A single transaction may satisfy more than one detection rule. Treating each match independently can complicate severity classification and exposure reporting.
+
+**Implementation:** KQL consolidates distinct scenario matches, retains their reasons and escalates events matching **two or more scenarios** to **Critical**. Within a consolidated alert, potential exposure is based on the maximum applicable scenario amount rather than adding overlapping scenario amounts.
+
+**Result:** Investigators receive a combined view of the matched rules and a consistent alert-level severity.
+
+## 5. Connecting streaming, persistence and reporting
+
+**Challenge:** Transaction ingestion, KQL detection, alert persistence, OneLake synchronization and Power BI refresh operate at different stages.
+
+**Implementation:** Eventstream routes incoming transactions, Eventhouse provides KQL querying, and a Fabric pipeline coordinates alert persistence and semantic model refresh. A separate Real-Time Dashboard queries the recent operational window.
+
+**Result:** Historical analysis and last-hour monitoring are available as complementary views.
+
+![Fabric pipeline](../screenshots/fabric/06_Live_Fraud_Pipeline.png)
+
+## 6. Designing investigation-oriented reports
+
+**Challenge:** Aggregate KPIs alone do not explain which transaction was flagged or which rule caused the alert.
+
+**Implementation:** The three Power BI pages combine trends, severity, geography, payment channels and transaction-level investigation fields. A separate Real-Time Dashboard displays recent alerts and their reasons.
+
+**Result:** The report supports both high-level monitoring and case-level exploration.
+
+[Explore the Power BI pages](../README.md#power-bi-dashboard)
+
+## 7. Metric consistency and validation
+
+**Challenge:** Alert counts, distinct flagged transactions, overlapping scenarios and exposure totals can use different aggregation grains.
+
+**Implementation:** The project documents KPI definitions, validates the historical transaction dataset and compares report-level totals with category breakdowns.
+
+**Current status:** Several extended-report visuals require further reconciliation. The differences and affected measures are listed in [Data Validation](VALIDATION.md).
+
+## 8. Development tools
+
+Python generation and debugging were completed in **VS Code with ChatGPT assistance**. The project uses deterministic KQL for detection and Power BI for the analytical presentation.
+
+## Technical considerations
+
+- The persistence script uses **`.set-or-replace FraudAlerts`** and rebuilds the target table. Incremental persistence would be required for a production-style extension.
+- The **Fabric Activator Critical-alert rule** is configured; successful email delivery has not been verified.
+- An ID-level comparison between injected synthetic anomalies and persisted alert records remains a separate validation step.
 
 ---
 

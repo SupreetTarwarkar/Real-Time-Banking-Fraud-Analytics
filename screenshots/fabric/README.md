@@ -1,15 +1,13 @@
-# Microsoft Fabric screenshots
+# Microsoft Fabric Screenshots
 
-Four **uploaded** screenshots document the Fabric implementation and rolling-hour monitoring. All four appear directly in the [main README](../../README.md).
+| Component | Screenshot | Description |
+|---|---|---|
+| **Fabric workspace** | [View screenshot](04_Fabric_Architecture.png) | Project workspace and analytical components |
+| **Eventstream** | [View screenshot](05_Eventstream_Architecture.png) | Synthetic transaction event ingestion |
+| **Data pipeline** | [View screenshot](06_Live_Fraud_Pipeline.png) | Alert persistence, synchronization and model refresh |
+| **Real-Time Dashboard** | [View screenshot](10_RealTime_Banking_Fraud_Monitoring_Dashboard.png) | Rolling one-hour operational KPIs and alert investigation |
 
-| Screenshot | What it shows |
-|---|---|
-| [04_Fabric_Architecture.png](04_Fabric_Architecture.png) | Fabric workspace and connected analytical components |
-| [05_Eventstream_Architecture.png](05_Eventstream_Architecture.png) | Simulated transaction ingestion and routing |
-| [06_Live_Fraud_Pipeline.png](06_Live_Fraud_Pipeline.png) | Dimension update, persisted alerts, OneLake wait and semantic-model refresh |
-| [10_RealTime_Banking_Fraud_Monitoring_Dashboard.png](10_RealTime_Banking_Fraud_Monitoring_Dashboard.png) | Last-hour operational KPIs and alert investigation table |
-
-The last-hour dashboard is a captured snapshot, not evidence of uninterrupted operation or confirmed Activator email delivery.
+All four images appear in the [main project README](../../README.md) alongside their architectural or monitoring context.
 
 ---
 

@@ -1,13 +1,13 @@
-# Project documentation
+# Project Documentation
 
-- [**Business Requirements Document**](Final_BRD.md) — objectives, five fraud-risk rules, KPIs, Power BI pages, Real-Time Dashboard, acceptance criteria and limitations.
-- [**Business Insights and Analytical Findings**](INSIGHTS.md) — monthly alert rates, channel mix, geographic findings, extended synthetic results and open reconciliation checks.
-- [**Challenges and Lessons Learned**](CHALLENGES_AND_LEARNINGS.md) — KQL, streaming, pipelines, Power BI, quality checks and AI-assisted Python development.
-- [**Validation and Interpretation**](VALIDATION.md) — historical transaction quality, alert-count interpretation, metric definitions and safe KQL execution.
+| Document | Description |
+|---|---|
+| [**Business Requirements**](Final_BRD.md) | Problem statement, objectives, fraud scenarios, KPIs and reporting requirements |
+| [**Business Insights**](INSIGHTS.md) | Monthly alert trends, payment-channel analysis, investigation findings and geographic patterns |
+| [**Engineering Challenges and Solutions**](CHALLENGES_AND_LEARNINGS.md) | Transaction simulation, KQL detection, alert consolidation, Fabric integration and dashboard design |
+| [**Data Validation and Metric Definitions**](VALIDATION.md) | Historical dataset checks, KPI definitions and report reconciliation status |
 
-**Formatted Word BRD:** `Final_BRD.docx` has not yet been uploaded. The complete readable Markdown version is available above.
-
-The documentation does not establish production readiness, real banking fraud prevalence or verified Fabric Activator email delivery.
+The complete business requirements are available in Markdown. A formatted Word version is not included in this repository.
 
 ---
 

@@ -1,8 +1,8 @@
 # Business Requirements Document
-## Real-Time Banking Fraud Analytics
+## Real Time Banking Fraud Analytics
 
 **Version:** 1.0 · **Date:** 01 November 2026  
-**Project:** Independent synthetic-data portfolio implementation  
+**Project:** Synthetic banking transaction risk monitoring  
 **Stack:** Python · Microsoft Fabric Eventstream · Eventhouse/KQL · Lakehouse · Power BI · Fabric Activator
 
 ### 1. Business background and problem statement
@@ -107,9 +107,9 @@ Dashboard Live Refresh re-executes queries; it does not itself generate transact
 | Configured Critical-alert Activator rule | Guaranteed email delivery, new-only alerting or uninterrupted 24/7 ingestion |
 | Potential exposure and rule-based alert rate | Actual monetary loss, regulatory certification or production readiness |
 
-Business time is interpreted in **IST** where applicable. Event arrival, persisted-alert updates and Power BI refresh are separate processes. Current persisted-alert totals and notification delivery must be independently verified before public reporting.
+Business time is interpreted in **IST** where applicable. Event arrival, persisted-alert updates and Power BI refresh are separate processes. Persisted alert counts and notification delivery are subject to separate Eventhouse and Activator verification.
 
-**Implementation references:** `kql/06_Final_FraudAlerts_Updated.kql`, `kql/07_Persist_FraudAlerts_Updated.kql`, confirmed final Python simulator and completed dashboard evidence.
+**Implementation references:** [Detection KQL](../kql/06_Final_FraudAlerts_Updated.kql), [persistence KQL](../kql/07_Persist_FraudAlerts_Updated.kql), [Python simulator](../python/RealTime_Banking_Fraud_FINAL.py) and [dashboard screenshots](../screenshots/README.md).
 
 ---
 

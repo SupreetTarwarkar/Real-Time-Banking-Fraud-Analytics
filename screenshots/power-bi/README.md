@@ -1,14 +1,14 @@
-# Power BI report screenshots
+# Power BI Dashboard Screenshots
 
-Six **uploaded** screenshots show the three Power BI report pages in two simulated reporting periods. Each image is embedded with a page description in the [main project README](../../README.md#5-power-bi-dashboard-pages).
+The three report pages are shown for the **July–September 2026 baseline** and the **July–November 2026 extended simulation**.
 
-| Page | Historical: July–September 2026 | Extended synthetic test: July–November 2026 |
+| Report page | Historical view | Extended view |
 |---|---|---|
-| **Fraud Overview** | [01_Fraud_Overview.png](01_Fraud_Overview.png) | [07_Fraud_Overview_Jul-Nov_2026.png](07_Fraud_Overview_Jul-Nov_2026.png) |
-| **Fraud Investigation** | [02_Fraud_Investigation.png](02_Fraud_Investigation.png) | [08_Fraud_Investigation_Jul-Nov_2026.png](08_Fraud_Investigation_Jul-Nov_2026.png) |
-| **Risk Patterns** | [03_Risk_Patterns.png](03_Risk_Patterns.png) | [09_Risk_Patterns_Jul-Nov_2026.png](09_Risk_Patterns_Jul-Nov_2026.png) |
+| **Fraud Overview** | [View screenshot](01_Fraud_Overview.png) | [View screenshot](07_Fraud_Overview_Jul-Nov_2026.png) |
+| **Fraud Investigation** | [View screenshot](02_Fraud_Investigation.png) | [View screenshot](08_Fraud_Investigation_Jul-Nov_2026.png) |
+| **Risk Patterns** | [View screenshot](03_Risk_Patterns.png) | [View screenshot](09_Risk_Patterns_Jul-Nov_2026.png) |
 
-The extended dataset contains future-dated November 2026 synthetic test records. It is not a historical real-world observation.
+The [main README](../../README.md#power-bi-dashboard) displays each pair of images with page descriptions and key findings.
 
 ---
 

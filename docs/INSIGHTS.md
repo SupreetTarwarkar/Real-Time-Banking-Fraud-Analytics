@@ -1,129 +1,130 @@
-# Business insights and analytical findings
+# Business Insights
 
-**Project:** Real-Time Banking Fraud Analytics | Microsoft Fabric, KQL and Power BI  
-**Data classification:** **100% synthetic**. Figures are demonstrations of the simulator and dashboard, **not real banking fraud statistics**.
+Analysis of the synthetic transaction data and fraud-risk dashboards developed in **Microsoft Fabric and Power BI**.
 
-## Evidence and time-period boundaries
+## Performance overview
 
-- **July–September 2026:** 240,000-row local `FactTransactions_202607_202609.csv` independently inspected for row counts, unique IDs, nulls, transaction values and channel mix. Historical Power BI screenshots supply alert and potential-exposure KPIs.
-- **July–November 2026:** Later Power BI screenshots supply additional October/November transaction and alert counts, severity, geography and potential-exposure figures. **As of 1 November 2026, the November 2026 data include future-dated synthetic test transactions**; they are not observations from elapsed real time.
-- The local simulator ground-truth file contains 9,678 injected anomaly cases with 9,678 distinct triggering transaction IDs. The historical Power BI screenshot **also displays 9,678 fraud-risk alerts**. Matching totals **do not independently prove** one-to-one KQL detection accuracy or ID-level reconciliation.
+The project includes a **240,000-transaction historical baseline** (July–September 2026) and an **extended 409,000-transaction simulation** (July–November 2026).
 
-## 1. Historical baseline: July–September 2026
+| KPI | Historical baseline | Extended simulation |
+|---|---:|---:|
+| Transactions | **240,000** | **409,000** |
+| Customers | **10,000** | **10,000** |
+| Fraud-risk alerts | **9,678** | **16,244** |
+| Alert rate | **4.03%** | **3.97%** |
+| Transaction value | **₹245.55 Cr** | **₹394.73 Cr** |
+| Potential exposure | **₹26.81 Cr** | **₹45.28 Cr** |
+| Critical alerts | **1,440** | **2,465** |
+| Multi-scenario alerts | **480** | **796** |
 
-| Metric | Value | Source |
-|---|---:|---|
-| Transactions | **240,000** | Local FactTransactions CSV, independently counted |
-| Unique transaction IDs | **240,000** | Local FactTransactions CSV |
-| Unique customers | **10,000** | Local FactTransactions CSV |
-| Missing values across the 10 transaction fields | **0** | Local FactTransactions CSV |
-| Transaction amount | **₹245.55 Cr** | CSV sum: ₹2,455,534,267.18 |
-| Fraud-risk alerts shown | **9,678** | Power BI Fraud Overview screenshot |
-| Flagged transaction rate shown | **4.03%** | Power BI Fraud Overview screenshot |
-| Potential fraud exposure shown | **₹26.81 Cr** | Power BI Fraud Overview screenshot; *not confirmed loss* |
-| Critical alerts shown | **1,440** | Power BI Fraud Investigation screenshot |
-| Multi-scenario alerts shown | **480** | Power BI Fraud Investigation screenshot |
+The extended simulation includes November 2026 test transactions, some future-dated relative to the publication date. All figures describe synthetic activity; potential exposure is not a confirmed loss.
 
-### Finding A: The highest alert count was not the highest alert rate
+## Fraud Overview: monthly activity
 
-| Month | Transactions | Alerts displayed | Alerts ÷ transactions |
+| Month | Transactions | Fraud-risk alerts | Alert rate |
 |---|---:|---:|---:|
 | July | 68,400 | 2,674 | **3.91%** |
 | August | 77,600 | 3,197 | **4.12%** |
 | September | 94,000 | 3,807 | **4.05%** |
-| **Total** | **240,000** | **9,678** | **4.03%** |
+| October | 81,000 | 3,156 | **3.90%** |
+| November | 88,000 | 3,410 | **3.88%** |
+| **Total** | **409,000** | **16,244** | **3.97%** |
 
-**Interpretation:** September produced the **most alerts (3,807)**, but August had the **highest normalized alert rate (4.12%)**. Raw counts increase with transaction volume; risk monitoring should compare rates using consistent denominators. These are synthetic outcomes, not estimates of real-world fraud prevalence.
+### 1. Alert volume and alert rate tell different stories
 
-### Finding B: High-volume channels are not necessarily highest-value channels
+**September** generated the most alerts (**3,807**) alongside the highest transaction volume (**94,000**). **August**, however, had the highest alert rate (**4.12%**).
 
-The following figures were **calculated directly from the 240,000-row CSV**, not inferred from chart labels.
+This distinction matters when comparing periods: a higher alert count can reflect more transaction activity rather than a higher proportion of flagged transactions.
 
-| Payment channel | Transactions | Share of count | Total amount | Share of amount |
+### 2. Transaction volume does not equal transaction value
+
+The following channel distribution was calculated from the **240,000-row July–September transaction dataset**.
+
+| Payment channel | Transactions | Share of transactions | Transaction value | Share of value |
 |---|---:|---:|---:|---:|
 | UPI | 106,063 | **44.19%** | ₹50.24 Cr | **20.46%** |
-| Credit Card | 34,602 | 14.42% | **₹58.85 Cr** | 23.96% |
-| Net Banking | 27,400 | 11.42% | **₹58.62 Cr** | 23.87% |
+| Credit Card | 34,602 | 14.42% | ₹58.85 Cr | 23.96% |
+| Net Banking | 27,400 | 11.42% | ₹58.62 Cr | 23.87% |
 | IMPS | 23,352 | 9.73% | ₹50.02 Cr | 20.37% |
 | Debit Card | 31,572 | 13.16% | ₹20.09 Cr | 8.18% |
 | ATM | 17,011 | 7.09% | ₹7.74 Cr | 3.15% |
 
-**Interpretation:** UPI accounts for **44.19% of transactions but only 20.46% of transaction value**. Credit Card and Net Banking have fewer transactions but each contribute about 24% of value. The distinction matters when designing channel-level monitoring; transaction frequency alone does not establish monetary exposure.
+**UPI** accounted for nearly half of transactions but approximately one-fifth of their total value. **Credit Card** and **Net Banking** each represented almost one-quarter of transaction value with substantially lower transaction counts.
 
-## 2. Extended synthetic simulation: July–November 2026
+Channel analysis therefore benefits from separate views of **frequency, value and flagged activity**.
 
-These figures come from the **later Power BI screenshots**, not from the locally inspected July–September CSV.
+## Fraud Investigation: severity and exposure
 
-| Month | Transactions shown | Alerts shown | Calculated alert rate |
-|---|---:|---:|---:|
-| July | 68,400 | 2,674 | 3.91% |
-| August | 77,600 | 3,197 | 4.12% |
-| September | 94,000 | 3,807 | 4.05% |
-| October | 81,000 | 3,156 | 3.90% |
-| November | 88,000 | 3,410 | 3.88% |
-| **Total** | **409,000** | **16,244** | **3.97%** |
+### 3. Multi-scenario alerts support prioritization
 
-| Extended dashboard KPI | Value |
+The extended simulation displays:
+
+| Investigation KPI | Value |
 |---|---:|
-| Synthetic customers | 10,000 |
-| Total transaction amount | **₹394.73 Cr** |
-| Potential fraud exposure | **₹45.28 Cr** |
 | Critical alerts | **2,465** |
 | Multi-scenario alerts | **796** |
 | Critical-alert potential exposure | **₹12.42 Cr** |
 | Multi-scenario-alert potential exposure | **₹3.08 Cr** |
 
-### Finding C: A modest change in the simulated alert rate
+Multi-scenario alerts represent approximately **32.3% of the Critical alert count**. The KQL consolidation logic raises an alert to Critical when two or more distinct scenarios match, preserving the contributing scenarios and their reasons.
 
-The October–November simulated extension contains **169,000 transactions** and **6,566 alerts**, a **3.89%** rate versus **4.03%** in July–September: approximately **0.15 percentage points lower**. This is a result of **controlled synthetic simulation**, not evidence that real banking risk improved.
+### 4. Exposure varies by fraud scenario and channel
 
-### Finding D: Multi-scenario alerts affect investigation priority
+In the extended dashboard's category-level exposure visuals:
 
-Of the **2,465** Critical alerts, **796** are labeled multi-scenario, approximately **32.3% of Critical alerts**. The implemented KQL elevates a consolidated alert to Critical when **two or more distinct scenarios** are triggered. It also takes the **maximum** applicable scenario exposure rather than adding overlapping scenario exposures. This makes multi-rule investigation and exposure deduplication meaningful implementation topics.
+- **Spending Burst** has the largest displayed scenario exposure: **₹28.79 Cr**.
+- **Credit Card** has the largest displayed payment-channel exposure: **₹30.38 Cr**.
 
-### Finding E: Geography changes the investigation view
+These visuals support scenario and channel comparisons. Their totals are not yet reconciled to the headline exposure measure; the specific discrepancy is recorded in [Data Validation](VALIDATION.md).
 
-- **Maharashtra**: highest state alert count, **1,286**.
-- **New Delhi**: highest city alert count, **476**.
-- **Bengaluru**: highest city-level potential exposure, **₹1.42 Cr**.
+## Risk Patterns: location and behavior
 
-The city with the most alerts is **not** the city with the highest displayed potential exposure. Counts and exposure should be examined separately. These are **simulated** geographic patterns; they do not imply any city has higher actual fraud risk.
+### 5. Alert concentration and potential exposure have different geographic leaders
 
-### Finding F: Scenario and channel patterns
+| Geographic metric | Leading location | Value |
+|---|---|---:|
+| State alert count | **Maharashtra** | **1,286** |
+| City alert count | **New Delhi** | **476** |
+| City potential exposure | **Bengaluru** | **₹1.42 Cr** |
 
-- **Spending Burst** is the largest scenario in the extended dashboard's exposure breakdown (**₹287.9 million / ₹28.79 Cr**).
-- **Credit Card** is the largest payment channel in its exposure breakdown (**₹303.8 million / ₹30.38 Cr**).
-- The scenario-by-channel heatmap shows **High Velocity** and **Impossible Travel** prominently under UPI, **Spending Burst** under Credit Card, and **Unusual High Value** under Net Banking.
+The leading city for alert frequency differs from the leading city for potential exposure. Using both measures helps distinguish where flagged activity is concentrated from where larger amounts are associated with those alerts.
 
-**Important:** These are **charted breakdowns, not reconciled additive totals**. The scenario and channel charts each sum to approximately **₹48.37 Cr**, whereas the headline potential-exposure KPI is **₹45.28 Cr**. The **₹3.09 Cr difference remains to be reconciled**. It could reflect different aggregation or overlap handling, but that cause has **not been verified**. Do **not** sum the bars or claim the charts tie to the headline.
+### 6. Scenario patterns differ by payment channel
 
-## 3. Operational monitoring snapshot
+The extended scenario-by-channel heatmap highlights:
 
-A single screenshot of `RealTime_Banking_Fraud_Monitoring` shows a **last-hour** snapshot: **282 transactions, 14 alerts, 1 Critical alert, ₹310.3K potential exposure, 4.96% alert rate**. These are **time-window-specific**, not lifetime or guaranteed continuously refreshed totals. The dashboard also exposes transaction IDs, customer IDs, locations, amounts, scenario, severity and alert reason for investigation.
+- **High Velocity** and **Impossible Travel** under **UPI**.
+- **Spending Burst** under **Credit Card**.
+- **Unusual High Value** under **Net Banking**.
 
-## 4. Outstanding quality checks before claiming complete reconciliation
+These patterns are properties of the simulated dataset and the configured rules, not estimates of real-world banking fraud behavior.
 
-1. **Exposure breakdowns:** Headline **₹45.28 Cr** vs category charts approximately **₹48.37 Cr**; reconcile filters, grouping and overlapping scenarios.
-2. **Repeat-alert customers:** Later Risk Patterns KPI shows **5,203**, but the pie categories for 2 and 3 alerts show **3,179 + 1,601 = 4,780**. The **423-customer difference** and displayed **60.77%** require definition/filter verification.
-3. **Historical Critical-by-Scenario visual:** The older Fraud Investigation screenshot labels the five base-scenario totals (**2,400 / 2,120 / 1,820 / 1,510 / 1,348**) as Critical-by-Scenario, although the headline Critical count is **1,440**. Do not use that chart as a critical-only distribution until the visual/measure is checked.
-4. **Detection accuracy:** A 9,678-to-9,678 total match does not establish an ID-level join between injected ground truth and persisted `FraudAlerts`. Validate true positives, unmatched detections and false positives separately before reporting precision/recall.
-5. **Temporal scope:** November 2026 synthetic records extend beyond the publication date of **1 November 2026**. Describe them as future-dated test data.
-6. **Activator:** A Critical-alert rule was configured; email receipt and new-only behavior were **not verified**.
-7. **Persistence:** `.set-or-replace FraudAlerts` is destructive and does not establish incremental, exactly-once alert ingestion.
+## Real-Time Monitoring: operational snapshot
 
-## 5. Resume-ready, defensible project bullets
+The Fabric Real-Time Dashboard provides a separate last-hour monitoring view.
 
-These bullets describe a **portfolio project**, not professional production experience. Retain only activities you can explain in an interview.
+| Last-hour KPI | Captured value |
+|---|---:|
+| Transactions | **282** |
+| Fraud-risk alerts | **14** |
+| Critical alerts | **1** |
+| Potential exposure | **₹310.3K** |
+| Alert rate | **4.96%** |
 
-- Built an end-to-end **Microsoft Fabric** fraud-risk analytics portfolio using **Eventstream, Eventhouse/KQL, Lakehouse and Power BI**, with **5 explainable detection rules** and a **3-page analytical report**.
-- Analyzed **240,000 synthetic historical transactions** across **10,000 customers**, verifying **0 missing transaction fields** and **240,000 unique transaction IDs**, and reported **₹245.55 Cr** in simulated transaction value.
-- Developed investigation-oriented reporting for a **409,000-transaction synthetic test dataset**, displaying **16,244 fraud-risk alerts**, a **3.97%** flagged rate and **2,465** Critical alerts, with separate rolling-hour operational monitoring.
+The investigation table links alerts to transaction IDs, customer IDs, locations, amounts, scenarios, severity and alert reasons. The displayed figures represent one captured window, rather than cumulative totals.
 
-**AI assistance:** ChatGPT assisted development/debugging of the Python simulator in VS Code. Do not imply the simulator was fully handwritten without AI or that the KQL rules constitute machine learning.
+## Data quality and analytical scope
 
----
+The inspected historical transaction file contained:
 
-*Source basis: local synthetic FactTransactions CSV, local synthetic ground-truth validation file (not committed), verified KQL scripts, and project Power BI/Fabric screenshots. Calculated percentages are rounded to two decimal places.*
+- **240,000** rows and **240,000 unique transaction IDs**.
+- **10,000** distinct customers.
+- **Zero missing values** across the ten transaction fields.
+- **₹2,455,534,267.18** in simulated transaction value.
+
+Monthly rates are calculated as the displayed fraud-risk alert count divided by the corresponding transaction count. The extended figures are taken from Power BI screenshots, while the historical transaction and channel calculations are based on the July–September CSV.
+
+[**Data validation and metric definitions**](VALIDATION.md) documents aggregation differences, detection reconciliation and operational limitations.
 
 ---
 

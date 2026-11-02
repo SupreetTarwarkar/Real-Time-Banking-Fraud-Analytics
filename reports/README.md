@@ -1,14 +1,16 @@
-# Power BI report
+# Power BI Report
 
-The project has **three Power BI pages**:
+The report is organized into three analytical pages:
 
-1. **Fraud Overview** — transactions, alerts, exposure, flagged rate, trends and channel mix.
-2. **Fraud Investigation** — Critical and multi-scenario alerts, exposure and investigation-level details.
-3. **Risk Patterns** — geography, hourly patterns, customer frequency and scenario-by-channel analysis.
+| Page | Focus |
+|---|---|
+| **Fraud Overview** | Transaction volume, fraud-risk alerts, alert rate, potential exposure, trends and channel distribution |
+| **Fraud Investigation** | Critical alerts, multi-scenario cases, exposure and transaction-level investigation |
+| **Risk Patterns** | Geographic rankings, customer patterns, hourly activity and scenario-by-channel analysis |
 
-The report's six screenshots are uploaded in [`screenshots/power-bi/`](../screenshots/power-bi/README.md) and displayed with page-by-page explanations in the [main README](../README.md#5-power-bi-dashboard-pages).
+Six report screenshots are available in the [Power BI screenshots folder](../screenshots/power-bi/README.md) and embedded in the [main README](../README.md#power-bi-dashboard).
 
-**PBIX status:** `Banking_Fraud_Risk_Analytics.pbix` has **not yet been uploaded** to this repository. A future upload may require users to reconfigure Fabric connections, credentials or the semantic model.
+The editable **PBIX file is not yet included** in the repository. Connecting a local copy to Microsoft Fabric may require the appropriate workspace permissions and semantic model configuration.
 
 ---
 

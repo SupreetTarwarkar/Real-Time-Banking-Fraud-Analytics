@@ -1,13 +1,11 @@
-# Project screenshots
+# Dashboard and Architecture Screenshots
 
-All **10 screenshots** are uploaded and embedded in the [main project README](../README.md).
+The repository contains **ten project screenshots**, all displayed in the [main README](../README.md).
 
-| Folder | Screenshots | Content |
+| Category | Images | Content |
 |---|---:|---|
-| [**Power BI**](power-bi/README.md) | **6** | Fraud Overview, Fraud Investigation and Risk Patterns; historical and extended synthetic views |
-| [**Microsoft Fabric**](fabric/README.md) | **4** | Workspace architecture, Eventstream, live fraud pipeline and rolling-hour monitoring dashboard |
-
-Each image is described alongside its relevant project section and business insight in the main README.
+| [**Power BI**](power-bi/README.md) | **6** | Fraud Overview, Fraud Investigation and Risk Patterns across two simulated periods |
+| [**Microsoft Fabric**](fabric/README.md) | **4** | Workspace architecture, Eventstream, data pipeline and Real-Time Monitoring Dashboard |
 
 ---
 
