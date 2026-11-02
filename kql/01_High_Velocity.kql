@@ -1,0 +1,41 @@
+let VelocityAlerts =
+FactTransactions
+| summarize
+    tx_count = count(),                                                        // Count transactions for the same customer inside each 2-minute window
+    potential_exposure_inr = sum(amount),                                      // Total INR amount involved in that 2-minute activity window
+    arg_max(transaction_timestamp, transaction_id)                             // Keep the latest transaction that caused the window threshold to be reached
+    by customer_id, window_start = bin(transaction_timestamp, 2m)             // Create fixed 2-minute windows separately for every customer
+| where tx_count >= 3                                                         // HIGH VELOCITY RULE: minimum 3 transactions within 2 minutes
+| extend fraud_scenario = "High Velocity"                                     // Name of the fraud-risk scenario
+| extend scenario_severity = case(
+    tx_count >= 6, "Critical",                                                // 6 or more transactions in 2 minutes = Critical
+    tx_count >= 4, "Severe",                                                  // 4-5 transactions in 2 minutes = Severe
+    "Suspicious"                                                              // Exactly 3 transactions in 2 minutes = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Timestamp of the latest transaction that triggered the alert
+| extend alert_reason = strcat(
+    tostring(tx_count),
+    " transactions detected within a 2-minute window"                         // Human-readable explanation for investigation/dashboard
+)
+| extend detection_method = "KQL Rule"                                        // Alert generated using deterministic KQL rule logic
+| project
+    transaction_id,                                                           // Latest transaction responsible for triggering this alert
+    customer_id,                                                              // Customer whose activity triggered the rule
+    alert_timestamp,                                                          // Time when the triggering transaction occurred
+    fraud_scenario,                                                           // High Velocity
+    scenario_severity,                                                        // Suspicious / Severe / Critical
+    tx_count,                                                                 // Number of transactions detected in the 2-minute window
+    potential_exposure_inr,                                                   // Total transaction value within the window
+    alert_reason,                                                             // Explainable reason shown to analyst
+    detection_method;                                                         // KQL Rule
+
+
+
+VelocityAlerts
+| extend Business_Month = format_datetime(                         // Convert alert time into a month label for monthly validation
+    alert_timestamp + 5h + 30m,                                   // Convert stored UTC timestamp to India Standard Time (IST)
+    "yyyy-MM"
+)
+| summarize Alert_Count = count()                                  // Count High Velocity alerts in each month
+    by Business_Month, scenario_severity                           // Split the result by month and severity
+| order by Business_Month asc, scenario_severity asc               // Display July, August, September in chronological order
