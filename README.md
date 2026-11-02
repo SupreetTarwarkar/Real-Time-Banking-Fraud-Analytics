@@ -161,7 +161,7 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 ## Acknowledgments
 
 - [**Santosh Avalamurthy**](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/) - Microsoft Fabric and Power BI training
-- [**Mansi Goel**](https://www.linkedin.com/in/mansigoelofficial/) - [Microsoft Fabric Learning Series (YouTube Playlist)](https://www.youtube.com/playlist?list=PLTrZQU5-tBf7Lp0bJWvcjLiwUiUS-iEDb)
+- [**Mansi Goel**](https://www.linkedin.com/in/mansigoelofficial/) - Microsoft Fabric Learning Series ([YouTube Playlist](https://www.youtube.com/playlist?list=PLTrZQU5-tBf7Lp0bJWvcjLiwUiUS-iEDb))
 
 ## Author
 
