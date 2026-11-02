@@ -158,15 +158,6 @@ The operational dashboard complements Power BI with a **rolling one-hour view** 
 
 [Explore the full analysis](docs/INSIGHTS.md)
 
-## Running the simulator
-
-```bash
-python -m pip install -r python/requirements.txt
-python python/RealTime_Banking_Fraud_FINAL.py
-```
-
-The simulator supports historical generation and controlled live-mode transactions. Fabric connection settings are required to stream events; credentials are not stored in the repository.
-
 ## Acknowledgments
 
 - [**Santosh Avalamurthy**](https://www.linkedin.com/in/santosh-avalamurthy-mct-msfabric-mspowerbi-coach-trainer/) - Microsoft Fabric and Power BI training.
