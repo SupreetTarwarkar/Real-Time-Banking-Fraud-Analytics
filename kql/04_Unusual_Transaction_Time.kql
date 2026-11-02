@@ -1,0 +1,46 @@
+let OffHourTransactions =
+FactTransactions
+| extend business_timestamp = transaction_timestamp + 5h + 30m               // Convert stored UTC timestamp to India Standard Time (IST)
+| where hourofday(business_timestamp) >= 0
+    and hourofday(business_timestamp) < 5                                     // OFF-HOURS RULE: transactions between 00:00 and 05:00 IST
+| extend business_window = bin(business_timestamp, 30m);                      // Group suspicious off-hour activity into 30-minute windows
+
+
+let OffHourAlerts =
+OffHourTransactions
+| summarize
+    offhour_tx_count = count(),                                               // Count off-hour transactions for the customer inside 30 minutes
+    potential_exposure_inr = sum(amount),                                     // Total INR exposure during the off-hour window
+    arg_max(transaction_timestamp, transaction_id)                            // Keep the latest transaction that completed the window
+    by customer_id, business_window
+| extend fraud_scenario = "Unusual Transaction Time"                          // Fraud-risk scenario name
+| extend scenario_severity = iff(
+    offhour_tx_count >= 2,
+    "Severe",                                                                 // 2 or more off-hour transactions within 30 minutes = Severe
+    "Suspicious"                                                              // Single off-hour transaction = Suspicious
+)
+| extend alert_timestamp = transaction_timestamp                              // Original timestamp of the triggering transaction
+| extend alert_reason = strcat(
+    tostring(offhour_tx_count),
+    " transaction(s) detected between 00:00 and 05:00 IST within a 30-minute window"
+)                                                                              // Explainable reason for analyst/dashboard
+| extend detection_method = "KQL Rule"                                        // Deterministic KQL rule
+| project
+    transaction_id,                                                           // Latest transaction associated with the alert
+    customer_id,                                                              // Customer involved
+    alert_timestamp,                                                          // Triggering transaction timestamp
+    fraud_scenario,                                                           // Unusual Transaction Time
+    scenario_severity,                                                        // Suspicious / Severe
+    potential_exposure_inr,                                                   // Total amount inside the off-hour window
+    alert_reason,                                                             // Human-readable explanation
+    detection_method;                                                         // KQL Rule
+
+
+OffHourAlerts
+| extend Business_Month = format_datetime(
+    alert_timestamp + 5h + 30m,                                               // Convert UTC timestamp back to IST for monthly validation
+    "yyyy-MM"
+)
+| summarize Alert_Count = count()
+    by Business_Month, scenario_severity                                      // Validate month + severity coverage
+| order by Business_Month asc, scenario_severity asc                          // July -> August -> September
