@@ -1,6 +1,12 @@
-# Power BI Report
+# Power BI Fraud Analytics Report
 
-The report is organized into three analytical pages:
+The Microsoft Fabric-hosted Power BI report presents transaction monitoring, alert investigation and geographic risk patterns across three interactive pages.
+
+**[Open the Fabric-hosted report](https://app.fabric.microsoft.com/reportEmbed?reportId=e50db27c-06cb-40cf-9a71-2345304e585e&autoAuth=true&ctid=b1228a6c-e6df-4780-809d-6ac8e9fdbf1f)**
+
+> **Access note:** This is an authenticated Fabric report link, not a public Power BI Publish to web URL. Opening it may require Microsoft sign-in and report access permissions. Availability depends on the associated Fabric workspace and capacity.
+
+## Report pages
 
 | Page | Focus |
 |---|---|
@@ -8,9 +14,11 @@ The report is organized into three analytical pages:
 | **Fraud Investigation** | Critical alerts, multi-scenario cases, exposure and transaction-level investigation |
 | **Risk Patterns** | Geographic rankings, customer patterns, hourly activity and scenario-by-channel analysis |
 
-Six report screenshots are available in the [Power BI screenshots folder](../screenshots/power-bi/README.md) and embedded in the [main README](../README.md#power-bi-dashboard).
+## Report previews
 
-The editable **PBIX file is not yet included** in the repository. Connecting a local copy to Microsoft Fabric may require the appropriate workspace permissions and semantic model configuration.
+Six permanent screenshots are available in the [Power BI screenshots gallery](../screenshots/power-bi/README.md) and in the [main project overview](../README.md#power-bi-dashboard). These allow the report layout and findings to be reviewed even when the Fabric-hosted report is unavailable.
+
+The editable Power BI Desktop (`.pbix`) file is intentionally not distributed. The repository documents the dashboard through screenshots, the report description and the hosted report link.
 
 ---
 
