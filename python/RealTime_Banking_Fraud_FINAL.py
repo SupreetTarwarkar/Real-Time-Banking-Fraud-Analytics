@@ -175,7 +175,7 @@ def load_inputs():
         try:
             path = filedialog.askopenfilename(
                 parent=root,
-                title=f"REQUIRED — Select {label}",
+                title=f"REQUIRED - Select {label}",
                 filetypes=[("CSV files", "*.csv")],
             )
         finally:
